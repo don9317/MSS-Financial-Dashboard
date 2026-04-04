@@ -1,427 +1,111 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MSS Financial Dashboard</title>
+<meta charset="UTF-8">
+<title>MSS Hybrid Dashboard V3 (Debug + Drilldown)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
-:root{--bg:#f6f8fb;--card:#fff;--text:#18212f;--muted:#64748b;--border:#dbe3ee;--accent:#0f62fe}
-*{box-sizing:border-box}
-body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-.wrap{max-width:1600px;margin:auto;padding:20px}
-h1{margin:0 0 6px;font-size:30px}.sub{color:var(--muted);margin-bottom:18px}
-.panel,.kpi,.tableWrap{background:#fff;border:1px solid var(--border);border-radius:12px}
-.panel{padding:12px;margin-bottom:12px}.controls{display:grid;grid-template-columns:1.3fr 1.3fr auto;gap:10px;align-items:end}
-label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase}
-input[type="file"]{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#fff}
-button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
-.kpi{padding:12px}.kpi .label{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700}.kpi .value{font-size:22px;font-weight:800;margin-top:6px}
-.status{color:var(--muted);font-size:13px;margin-top:8px}
-.tableWrap{overflow:auto}.summary{font-size:12px;color:var(--muted);margin:8px 0 0}
-table{width:100%;border-collapse:collapse;min-width:1400px}th,td{padding:8px;border-bottom:1px solid var(--border);font-size:12px;text-align:left;vertical-align:top}th{background:#f6f8fb;text-transform:uppercase;font-size:11px}
-.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#eef4ff;color:#214da0;white-space:nowrap;margin-right:4px;margin-bottom:4px}
-@media (max-width: 1100px){.kpis{grid-template-columns:repeat(2,1fr)}}
-@media (max-width: 700px){.controls,.kpis{grid-template-columns:1fr}}
+body { font-family: Arial; background:#f5f7fb; margin:0; padding:20px; }
+.card { background:#fff; padding:15px; border-radius:10px; margin-bottom:15px; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
+h2 { margin-top:0; }
+.grid { display:grid; grid-template-columns: repeat(4,1fr); gap:10px; }
+select { padding:8px; }
+table { width:100%; border-collapse: collapse; }
+th, td { padding:8px; border-bottom:1px solid #ddd; font-size:12px; }
+th { background:#f0f3f8; }
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>MSS Financial Dashboard</h1>
-<div class="sub">Internal view. Upload Stripe and MSS files together. Option A logic restores fee splits, revenue classification, reimbursement due, and facility net reporting.</div>
 
-<div class="panel">
-  <div class="controls">
-    <div>
-      <label for="stripeFile">Stripe Balance History CSV</label>
-      <input type="file" id="stripeFile" accept=".csv" />
-    </div>
-    <div>
-      <label for="mssFile">MSS History CSV</label>
-      <input type="file" id="mssFile" accept=".csv" />
-    </div>
-    <div>
-      <button onclick="loadFiles()">Load Files</button>
-    </div>
-  </div>
-  <div id="status" class="status">Choose one or both files, then click Load Files.</div>
-  <div id="diagnostics" class="summary"></div>
+<div class="card">
+<h2>Filters</h2>
+<div class="grid">
+<select id="typeFilter">
+<option value="All">All Types</option>
+<option value="Rental">Rental</option>
+<option value="Rental Package">Rental Package</option>
+<option value="Camp">Camp</option>
+<option value="League/Tournament">League/Tournament</option>
+<option value="Membership">Membership</option>
+<option value="Cancellation Fee">Cancellation Fee</option>
+</select>
+
+<select id="sourceFilter">
+<option value="All">All Sources</option>
+<option value="Stripe">Stripe</option>
+<option value="MSS">MSS</option>
+<option value="Stripe Only">Stripe Only</option>
+<option value="Offline Only">Offline Only</option>
+</select>
+
+<select id="matchFilter">
+<option value="All">All Match Status</option>
+<option value="Matched">Matched</option>
+<option value="Unmatched">Unmatched</option>
+</select>
+</div>
 </div>
 
-<div class="kpis">
-  <div class="kpi"><div class="label">Customer Total Collected</div><div id="customerTotal" class="value">$0.00</div></div>
-  <div class="kpi"><div class="label">Facility Gross Revenue</div><div id="facilityGross" class="value">$0.00</div></div>
-  <div class="kpi"><div class="label">MSS Fee Revenue</div><div id="mssRevenue" class="value">$0.00</div></div>
-  <div class="kpi"><div class="label">Credit Card Fees</div><div id="ccFees" class="value">$0.00</div></div>
-
-  <div class="kpi"><div class="label">MSS Reimbursement Due</div><div id="mssReimbursement" class="value">$0.00</div></div>
-  <div class="kpi"><div class="label">Facility Net Actual</div><div id="facilityNetActual" class="value">$0.00</div></div>
-  <div class="kpi"><div class="label">Facility Net Adjusted</div><div id="facilityNetAdjusted" class="value">$0.00</div></div>
-  <div class="kpi"><div class="label">Transactions</div><div id="count" class="value">0</div></div>
+<div class="card">
+<h2>Debug Summary</h2>
+<div id="debugSummary"></div>
 </div>
 
-<div class="tableWrap">
-<table>
+<div class="card">
+<h2>Transaction Detail</h2>
+<table id="table">
 <thead>
-  <tr>
-    <th>Source</th>
-    <th>Date</th>
-    <th>Description</th>
-    <th>Revenue Type</th>
-    <th>Payment Method</th>
-    <th>Customer Total</th>
-    <th>Facility Gross</th>
-    <th>MSS Fee</th>
-    <th>CC Fee</th>
-    <th>MSS Burden</th>
-    <th>Facility Fee Burden</th>
-  </tr>
+<tr>
+<th>Date</th>
+<th>Source</th>
+<th>Type</th>
+<th>Amount</th>
+<th>Status</th>
+</tr>
 </thead>
-<tbody id="body"><tr><td colspan="11">No data loaded yet.</td></tr></tbody>
+<tbody></tbody>
 </table>
-</div>
 </div>
 
 <script>
-let stripeData = [];
-let mssData = [];
-
-function setStatus(msg){ document.getElementById('status').textContent = msg; }
-function money(n){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0)); }
-function safe(v){ return v == null ? '' : String(v).trim(); }
-
-function parseCSV(text){
-  const rows = [];
-  let row = [];
-  let cell = '';
-  let inQuotes = false;
-
-  for(let i=0;i<text.length;i++){
-    const ch = text[i];
-    const next = text[i+1];
-    if(ch === '"'){
-      if(inQuotes && next === '"'){
-        cell += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-    } else if(ch === ',' && !inQuotes){
-      row.push(cell);
-      cell = '';
-    } else if((ch === '\n' || ch === '\r') && !inQuotes){
-      if(ch === '\r' && next === '\n') i++;
-      row.push(cell);
-      if(row.some(v => safe(v) !== '')) rows.push(row);
-      row = [];
-      cell = '';
-    } else {
-      cell += ch;
-    }
-  }
-  if(cell.length || row.length){
-    row.push(cell);
-    if(row.some(v => safe(v) !== '')) rows.push(row);
-  }
-  if(!rows.length) return [];
-
-  const headers = rows[0].map(h => safe(h));
-  return rows.slice(1).map(r => {
-    const obj = {};
-    headers.forEach((h,i) => obj[h] = r[i] ?? '');
-    return obj;
-  });
-}
-
-function parseAmount(v){
-  const cleaned = safe(v).replace(/[$,\s]/g,'');
-  const n = parseFloat(cleaned);
-  return Number.isFinite(n) ? n : 0;
-}
-
-function fmtDate(v){
-  const s = safe(v);
-  if(!s) return '';
-  const d = new Date(s);
-  return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('en-US');
-}
-
-function normalizeKey(s){
-  return safe(s).toLowerCase().replace(/[^a-z0-9]/g,'');
-}
-
-function getField(row, names){
-  const map = {};
-  Object.keys(row || {}).forEach(k => { map[normalizeKey(k)] = row[k]; });
-  for(const name of names){
-    const v = map[normalizeKey(name)];
-    if(v != null && safe(v) !== '') return v;
-  }
-  return '';
-}
-
-function lowerJoinedRow(row){
-  return Object.values(row || {}).map(v => safe(v).toLowerCase()).join(' | ');
-}
-
-function classifyRevenueType(row){
-  const joined = lowerJoinedRow(row);
-
-  if(joined.includes('membership') || joined.includes('member fee') || joined.includes('monthly membership')) return 'Membership';
-  if(joined.includes('camp')) return 'Camp';
-  if(joined.includes('class')) return 'Class';
-  if(joined.includes('league')) return 'League';
-  if(joined.includes('tournament')) return 'Tournament';
-  if(joined.includes('training')) return 'Training';
-  if(joined.includes('party') || joined.includes('birthday')) return 'Party';
-  if(joined.includes('registration') || joined.includes('register')) return 'Registration';
-  if(joined.includes('court') || joined.includes('field') || joined.includes('rental') || joined.includes('reservation') || joined.includes('hourly') || joined.includes('gym')) return 'Rental';
-
-  return 'Unclassified';
-}
-
-function feeRateForRevenueType(type){
-  const t = safe(type).toLowerCase();
-  if(['camp','class','league','tournament','registration'].includes(t)) return 0.025;
-  if(['membership','rental','party','training'].includes(t)) return 0.05;
-  return 0.05;
-}
-
-function classifyPaymentMethod(row){
-  return safe(
-    getField(row, [
-      'Form Of Payment','Form of Payment','Payment Method','Paid Via','Payment Type',
-      'Method','Payment'
-    ])
-  ) || 'Unknown';
-}
-
-function isOfflinePaymentMethod(method){
-  const m = safe(method).toLowerCase();
-  return m.includes('cash') || m.includes('check') || m.includes('invoice');
-}
-
-function isStripeTransactionType(type){
-  const t = safe(type).toLowerCase();
-  return ['charge','payment','refund'].includes(t);
-}
-
-function toSignedAmountByType(type, amt){
-  const t = safe(type).toLowerCase();
-  if(t === 'refund') return -Math.abs(amt);
-  return amt;
-}
-
-function allocateStripeFee(customerTotal, stripeFee, mssFee){
-  const totalBase = Math.abs(customerTotal);
-  const feeBase = Math.abs(stripeFee);
-  const mssBase = Math.abs(mssFee);
-
-  if(totalBase <= 0 || feeBase <= 0 || mssBase <= 0){
-    return {
-      mssBurden: 0,
-      facilityBurden: feeBase
-    };
-  }
-
-  const mssBurden = feeBase * (mssBase / totalBase);
-  const facilityBurden = feeBase - mssBurden;
-
-  return {
-    mssBurden,
-    facilityBurden
-  };
-}
-
-function addCell(tr, value){
-  const td = document.createElement('td');
-  td.innerHTML = value;
-  tr.appendChild(td);
-}
-
-function moneyCell(v){
-  return escapeHtml(money(v));
-}
-
-async function loadFiles(){
-  const stripeFile = document.getElementById('stripeFile').files[0];
-  const mssFile = document.getElementById('mssFile').files[0];
-  if(!stripeFile && !mssFile){
-    setStatus('Please choose at least one file.');
-    return;
-  }
-
-  setStatus('Reading files...');
-  try {
-    stripeData = stripeFile ? parseCSV(await stripeFile.text()) : [];
-    mssData = mssFile ? parseCSV(await mssFile.text()) : [];
-    render();
-  } catch(err){
-    console.error(err);
-    setStatus('Error reading file(s).');
-  }
-}
+let data = [];
 
 function render(){
-  const body = document.getElementById('body');
-  body.innerHTML = '';
+ let type = document.getElementById('typeFilter').value;
+ let source = document.getElementById('sourceFilter').value;
+ let match = document.getElementById('matchFilter').value;
 
-  const transactions = [];
+ let filtered = data.filter(r=>{
+   if(type!=='All' && r.type!==type) return false;
+   if(source!=='All' && r.source!==source) return false;
+   if(match==='Matched' && !r.matched) return false;
+   if(match==='Unmatched' && r.matched) return false;
+   return true;
+ });
 
-  let customerTotal = 0;
-  let facilityGross = 0;
-  let mssRevenue = 0;
-  let ccFees = 0;
-  let mssReimbursement = 0;
-  let facilityNetActual = 0;
-  let facilityNetAdjusted = 0;
-  let count = 0;
+ let tbody = document.querySelector("#table tbody");
+ tbody.innerHTML='';
+ filtered.forEach(r=>{
+   let tr=document.createElement('tr');
+   tr.innerHTML=`<td>${r.date}</td><td>${r.source}</td><td>${r.type}</td><td>${r.amount}</td><td>${r.matched?'Matched':'Unmatched'}</td>`;
+   tbody.appendChild(tr);
+ });
 
-  let stripeRendered = 0;
-  let mssRendered = 0;
-
-  stripeData.forEach(r => {
-    const type = safe(getField(r, ['Type'])).toLowerCase();
-    if(!isStripeTransactionType(type)) return;
-
-    const rawAmount = parseAmount(getField(r, ['Amount']));
-    const rawFee = Math.abs(parseAmount(getField(r, ['Fee'])));
-    const desc = safe(getField(r, ['Description'])) || 'Stripe Transaction';
-    const dateVal = getField(r, ['Created (UTC)', 'Created', 'Date']);
-    const revenueType = classifyRevenueType(r);
-    const rate = feeRateForRevenueType(revenueType);
-
-    const signedCustomerTotal = toSignedAmountByType(type, rawAmount);
-    const signedMssFee = signedCustomerTotal * rate;
-    const signedFacilityGross = signedCustomerTotal - signedMssFee;
-
-    const feeAlloc = allocateStripeFee(signedCustomerTotal, rawFee, signedMssFee);
-    const signedCcFee = type === 'refund' ? -rawFee : rawFee;
-    const signedMssBurden = type === 'refund' ? -feeAlloc.mssBurden : feeAlloc.mssBurden;
-    const signedFacilityBurden = type === 'refund' ? -feeAlloc.facilityBurden : feeAlloc.facilityBurden;
-
-    customerTotal += signedCustomerTotal;
-    facilityGross += signedFacilityGross;
-    mssRevenue += signedMssFee;
-    ccFees += signedCcFee;
-    mssReimbursement += signedMssBurden;
-    facilityNetActual += (signedFacilityGross - signedCcFee);
-    facilityNetAdjusted += (signedFacilityGross - signedFacilityBurden);
-    count += 1;
-    stripeRendered += 1;
-
-    transactions.push({
-      source: 'Stripe',
-      date: fmtDate(dateVal),
-      description: desc,
-      revenueType,
-      paymentMethod: 'Credit Card',
-      customerTotal: signedCustomerTotal,
-      facilityGross: signedFacilityGross,
-      mssFee: signedMssFee,
-      ccFee: signedCcFee,
-      mssBurden: signedMssBurden,
-      facilityBurden: signedFacilityBurden
-    });
-  });
-
-  mssData.forEach(r => {
-    const paymentMethod = classifyPaymentMethod(r);
-    const amount = parseAmount(getField(r, ['Price','Amount','Total','Rental Total']));
-    if(!amount) return;
-
-    const revenueType = classifyRevenueType(r);
-    const rate = feeRateForRevenueType(revenueType);
-    const desc = safe(getField(r, ['Title','Description','Name'])) || 'MSS Transaction';
-    const dateVal = getField(r, ['Reservation Date','Date','Created']);
-    const offline = isOfflinePaymentMethod(paymentMethod);
-
-    if(!offline) return;
-
-    const customer = amount;
-    const mssFee = customer * rate;
-    const facility = customer - mssFee;
-
-    customerTotal += customer;
-    facilityGross += facility;
-    mssRevenue += mssFee;
-    ccFees += 0;
-    mssReimbursement += 0;
-    facilityNetActual += facility;
-    facilityNetAdjusted += facility;
-    count += 1;
-    mssRendered += 1;
-
-    transactions.push({
-      source: 'MSS',
-      date: fmtDate(dateVal),
-      description: desc,
-      revenueType,
-      paymentMethod,
-      customerTotal: customer,
-      facilityGross: facility,
-      mssFee: mssFee,
-      ccFee: 0,
-      mssBurden: 0,
-      facilityBurden: 0
-    });
-  });
-
-  if(!transactions.length){
-    body.innerHTML = '<tr><td colspan="11">No usable rows found in the uploaded files.</td></tr>';
-  } else {
-    transactions.sort((a,b) => {
-      const ad = new Date(a.date);
-      const bd = new Date(b.date);
-      const at = Number.isNaN(ad.getTime()) ? 0 : ad.getTime();
-      const bt = Number.isNaN(bd.getTime()) ? 0 : bd.getTime();
-      return bt - at;
-    });
-
-    const frag = document.createDocumentFragment();
-
-    transactions.forEach(t => {
-      const tr = document.createElement('tr');
-      addCell(tr, `<span class="badge">${escapeHtml(t.source)}</span>`);
-      addCell(tr, escapeHtml(t.date));
-      addCell(tr, escapeHtml(t.description));
-      addCell(tr, escapeHtml(t.revenueType));
-      addCell(tr, escapeHtml(t.paymentMethod));
-      addCell(tr, moneyCell(t.customerTotal));
-      addCell(tr, moneyCell(t.facilityGross));
-      addCell(tr, moneyCell(t.mssFee));
-      addCell(tr, moneyCell(t.ccFee));
-      addCell(tr, moneyCell(t.mssBurden));
-      addCell(tr, moneyCell(t.facilityBurden));
-      frag.appendChild(tr);
-    });
-
-    body.appendChild(frag);
-  }
-
-  document.getElementById('customerTotal').innerText = money(customerTotal);
-  document.getElementById('facilityGross').innerText = money(facilityGross);
-  document.getElementById('mssRevenue').innerText = money(mssRevenue);
-  document.getElementById('ccFees').innerText = money(ccFees);
-  document.getElementById('mssReimbursement').innerText = money(mssReimbursement);
-  document.getElementById('facilityNetActual').innerText = money(facilityNetActual);
-  document.getElementById('facilityNetAdjusted').innerText = money(facilityNetAdjusted);
-  document.getElementById('count').innerText = count.toLocaleString();
-
-  document.getElementById('diagnostics').innerHTML =
-    `Stripe rows loaded: <strong>${stripeData.length}</strong> &nbsp; | &nbsp; MSS rows loaded: <strong>${mssData.length}</strong> &nbsp; | &nbsp; Stripe rendered: <strong>${stripeRendered}</strong> &nbsp; | &nbsp; MSS offline rendered: <strong>${mssRendered}</strong> &nbsp; | &nbsp; Total rendered: <strong>${count}</strong>`;
-
-  setStatus('Files loaded. Option A internal financial model is active.');
+ let total = filtered.reduce((a,b)=>a+b.amount,0);
+ document.getElementById('debugSummary').innerText = "Rows: "+filtered.length+" | Total: $"+total.toFixed(2);
 }
 
-function escapeHtml(str){
-  return String(str)
-    .replace(/&/g,'&amp;')
-    .replace(/</g,'&lt;')
-    .replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;')
-    .replace(/'/g,'&#39;');
-}
+document.querySelectorAll("select").forEach(el=>el.onchange=render);
+
+// sample placeholder
+data = [
+ {date:'2026-02-01',source:'Stripe',type:'Rental',amount:100,matched:true},
+ {date:'2026-02-02',source:'MSS',type:'Rental',amount:100,matched:true},
+ {date:'2026-02-03',source:'Stripe',type:'Camp',amount:200,matched:false}
+];
+
+render();
 </script>
+
 </body>
-</html
+</html>

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MSS Financial Dashboard</title>
+<style>
+:root{--bg:#f6f8fb;--card:#fff;--text:#18212f;--muted:#64748b;--border:#dbe3ee;--accent:#0f62fe}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1400px;margin:auto;padding:20px}
+h1{margin:0 0 6px;font-size:30px}.sub{color:var(--muted);margin-bottom:18px}
+.panel,.kpi,.tableWrap{background:#fff;border:1px solid var(--border);border-radius:12px}
+.panel{padding:12px;margin-bottom:12px}.controls{display:grid;grid-template-columns:1.3fr 1.3fr auto;gap:10px;align-items:end}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:700;text-transform:uppercase}
+input[type="file"]{width:100%;padding:10px;border-radius:8px;border:1px solid var(--border);background:#fff}
+button{background:var(--accent);color:#fff;border:none;padding:10px 14px;border-radius:8px;font-weight:700;cursor:pointer}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
+.kpi{padding:12px}.kpi .label{font-size:11px;text-transform:uppercase;color:var(--muted);font-weight:700}.kpi .value{font-size:22px;font-weight:800;margin-top:6px}
+.status{color:var(--muted);font-size:13px;margin-top:8px}
+.tableWrap{overflow:auto}.summary{font-size:12px;color:var(--muted);margin:8px 0 0}
+table{width:100%;border-collapse:collapse;min-width:900px}th,td{padding:8px;border-bottom:1px solid var(--border);font-size:12px;text-align:left;vertical-align:top}th{background:#f6f8fb;text-transform:uppercase;font-size:11px}
+.badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;background:#eef4ff;color:#214da0;white-space:nowrap;margin-right:4px;margin-bottom:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>MSS Financial Dashboard</h1>
+<div class="sub">Internal view. Upload Stripe and MSS files together. This restored version brings back both file inputs and a proper CSV parser.</div>
+
+<div class="panel">
+  <div class="controls">
+    <div>
+      <label for="stripeFile">Stripe Balance History CSV</label>
+      <input type="file" id="stripeFile" accept=".csv" />
+    </div>
+    <div>
+      <label for="mssFile">MSS History CSV</label>
+      <input type="file" id="mssFile" accept=".csv" />
+    </div>
+    <div>
+      <button onclick="loadFiles()">Load Files</button>
+    </div>
+  </div>
+  <div id="status" class="status">Choose one or both files, then click Load Files.</div>
+  <div id="diagnostics" class="summary"></div>
+</div>
+
+<div class="kpis">
+  <div class="kpi"><div class="label">Stripe Gross</div><div id="gross" class="value">$0.00</div></div>
+  <div class="kpi"><div class="label">MSS Fee Placeholder</div><div id="mss" class="value">$0.00</div></div>
+  <div class="kpi"><div class="label">CC Fees</div><div id="fees" class="value">$0.00</div></div>
+  <div class="kpi"><div class="label">Transactions</div><div id="count" class="value">0</div></div>
+</div>
+
+<div class="tableWrap">
+<table>
+<thead><tr><th>Source</th><th>Date</th><th>Description</th><th>Amount</th><th>Fee</th><th>Type / Payment</th></tr></thead>
+<tbody id="body"><tr><td colspan="6">No data loaded yet.</td></tr></tbody>
+</table>
+</div>
+</div>
+
+<script>
+let stripeData = [];
+let mssData = [];
+
+function setStatus(msg){ document.getElementById('status').textContent = msg; }
+function money(n){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD'}).format(Number(n||0)); }
+function safe(v){ return v == null ? '' : String(v).trim(); }
+
+function parseCSV(text){
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    const next = text[i+1];
+    if(ch === '"'){
+      if(inQuotes && next === '"'){
+        cell += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if(ch === ',' && !inQuotes){
+      row.push(cell);
+      cell = '';
+    } else if((ch === '\n' || ch === '\r') && !inQuotes){
+      if(ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if(row.some(v => safe(v) !== '')) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += ch;
+    }
+  }
+  if(cell.length || row.length){
+    row.push(cell);
+    if(row.some(v => safe(v) !== '')) rows.push(row);
+  }
+  if(!rows.length) return [];
+
+  const headers = rows[0].map(h => safe(h));
+  return rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = r[i] ?? '');
+    return obj;
+  });
+}
+
+function parseAmount(v){
+  const cleaned = safe(v).replace(/[$,\s]/g,'');
+  const n = parseFloat(cleaned);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function fmtDate(v){
+  const s = safe(v);
+  if(!s) return '';
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? s : d.toLocaleDateString('en-US');
+}
+
+async function loadFiles(){
+  const stripeFile = document.getElementById('stripeFile').files[0];
+  const mssFile = document.getElementById('mssFile').files[0];
+  if(!stripeFile && !mssFile){
+    setStatus('Please choose at least one file.');
+    return;
+  }
+
+  setStatus('Reading files...');
+  try {
+    stripeData = stripeFile ? parseCSV(await stripeFile.text()) : [];
+    mssData = mssFile ? parseCSV(await mssFile.text()) : [];
+    render();
+  } catch(err){
+    console.error(err);
+    setStatus('Error reading file(s).');
+  }
+}
+
+function render(){
+  const body = document.getElementById('body');
+  body.innerHTML = '';
+
+  let gross = 0;
+  let fees = 0;
+  let mss = 0;
+  let count = 0;
+
+  stripeData.forEach(r => {
+    const type = safe(r.Type).toLowerCase();
+    if(!['charge','payment','refund','stripe_fee'].includes(type)) return;
+    const amt = parseAmount(r.Amount);
+    const fee = parseAmount(r.Fee);
+    const desc = safe(r.Description);
+    const shownAmt = type === 'refund' ? -Math.abs(amt) : amt;
+    const shownFee = type === 'refund' ? -Math.abs(fee) : fee;
+
+    if(type === 'charge' || type === 'payment') gross += shownAmt;
+    if(type === 'refund') gross += shownAmt;
+    if(type === 'charge' || type === 'payment' || type === 'refund') fees += Math.abs(shownFee);
+    if(type === 'charge' || type === 'payment') mss += shownAmt * 0.05;
+    count += 1;
+
+    body.innerHTML += `<tr><td><span class="badge">Stripe</span></td><td>${fmtDate(r['Created (UTC)'] || r.Created)}</td><td>${escapeHtml(desc)}</td><td>${money(shownAmt)}</td><td>${money(shownFee)}</td><td>${escapeHtml(type)}</td></tr>`;
+  });
+
+  mssData.forEach(r => {
+    const payment = safe(r['Form Of Payment'] || r['Form of Payment'] || r['Payment Method'] || r['Paid Via']);
+    const amt = parseAmount(r.Price || r.Amount || r.Total || r['Rental Total']);
+    if(!amt) return;
+    count += 1;
+    body.innerHTML += `<tr><td><span class="badge">MSS</span></td><td>${fmtDate(r['Reservation Date'] || r.Date || r.Created)}</td><td>${escapeHtml(safe(r.Title || r.Description || r.Name || 'MSS Transaction'))}</td><td>${money(amt)}</td><td>${money(0)}</td><td>${escapeHtml(payment)}</td></tr>`;
+  });
+
+  if(!count){
+    body.innerHTML = '<tr><td colspan="6">No usable rows found in the uploaded files.</td></tr>';
+  }
+
+  document.getElementById('gross').innerText = money(gross);
+  document.getElementById('fees').innerText = money(fees);
+  document.getElementById('mss').innerText = money(mss);
+  document.getElementById('count').innerText = count.toLocaleString();
+
+  document.getElementById('diagnostics').innerHTML =
+    `Stripe rows: <strong>${stripeData.length}</strong> &nbsp; | &nbsp; MSS rows: <strong>${mssData.length}</strong> &nbsp; | &nbsp; Rendered rows: <strong>${count}</strong>`;
+  setStatus('Files loaded. This is the restored MSS canvas with both file inputs.');
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>

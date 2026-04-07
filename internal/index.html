@@ -79,13 +79,13 @@ th{position:sticky;top:0;background:#f8fbff;z-index:2;font-size:11px;text-transf
 <option value="UnPaid">UnPaid</option>
 <option value="Unknown">Unknown</option>
 </select></div>
-<div class="field"><label>Facility</label><select id="facilityFilter"><option value="All">All Facilities</option></select></div>
+<div class="field"><label>REntable Spaces</label><select id="facilityFilter"><option value="All">All Facilities</option></select></div>
 </div>
 </div>
 
 <div class="grid-5">
 <div class="card kpi"><div class="label">Actual Collected Revenue</div><div class="value good" id="kpiCollectedRevenue">$0.00</div><div class="sub" id="kpiCollectedCount">0 counted transactions</div></div>
-<div class="card kpi"><div class="label">Facility Net Revenue</div><div class="value good" id="kpiFacilityNet">$0.00</div><div class="sub">Base price minus Stripe fee</div></div>
+<div class="card kpi"><div class="label">Facility Net Revenue</div><div class="value good" id="kpiFacilityNet">$0.00</div><div class="sub">Base price minus MSS and Stripe fee</div></div>
 <div class="card kpi"><div class="label">MSS Fee Revenue</div><div class="value" id="kpiMssFee">$0.00</div><div class="sub">Calculated from counted rows</div></div>
 <div class="card kpi"><div class="label">Stripe Fees</div><div class="value warn" id="kpiStripeFees">$0.00</div><div class="sub">Only counted Stripe rows</div></div>
 <div class="card kpi"><div class="label">UnPaid Offline</div><div class="value bad" id="kpiUnpaidOffline">$0.00</div><div class="sub" id="kpiUnpaidOfflineCount">0 transactions</div></div>

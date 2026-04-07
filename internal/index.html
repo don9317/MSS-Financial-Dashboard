@@ -3,161 +3,219 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MSS Financial Dashboard V7</title>
+<title>MSS Financial Dashboard V7 Fixed</title>
 <style>
-:root{--bg:#f5f7fb;--card:#fff;--text:#17324d;--muted:#6b7c93;--line:#dbe4ee;--accent:#0d6efd;--good:#1f9d55;--warn:#d97706;--bad:#dc2626;--shadow:0 8px 24px rgba(22,40,72,.08)}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
-.wrap{max-width:1700px;margin:0 auto;padding:20px}.hero{background:linear-gradient(135deg,#163a63,#0d6efd);color:#fff;border-radius:18px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:16px}
-.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:0;opacity:.96}.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;margin-bottom:16px}
-.grid-6,.grid-5,.grid-2{display:grid;gap:12px}.grid-6{grid-template-columns:repeat(6,minmax(0,1fr))}.grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}.grid-2{grid-template-columns:1.2fr 1fr}
-.field{display:flex;flex-direction:column;gap:6px}label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+:root{
+  --bg:#f5f7fb; --card:#fff; --text:#17324d; --muted:#6b7c93; --line:#dbe4ee;
+  --accent:#0d6efd; --good:#1f9d55; --warn:#d97706; --bad:#dc2626; --shadow:0 8px 24px rgba(22,40,72,.08);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1700px;margin:0 auto;padding:20px}
+.hero{background:linear-gradient(135deg,#163a63,#0d6efd);color:#fff;border-radius:18px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:16px}
+.hero h1{margin:0 0 8px;font-size:30px}
+.hero p{margin:0;opacity:.96}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;margin-bottom:16px}
+.grid-6,.grid-5,.grid-2{display:grid;gap:12px}
+.grid-6{grid-template-columns:repeat(6,minmax(0,1fr))}
+.grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.grid-2{grid-template-columns:1.2fr 1fr}
+.field{display:flex;flex-direction:column;gap:6px}
+label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 input[type=file],select,input[type=number],button{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #c9d5e3;font-size:14px;background:#fff}
-button{background:var(--accent);color:#fff;border:none;font-weight:700;cursor:pointer}.kpi .label{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:8px}
-.kpi .value{font-size:28px;font-weight:800;margin-bottom:4px}.kpi .sub{font-size:12px;color:var(--muted)}.section-title{margin:0 0 12px;font-size:18px}
-.small,.notes{font-size:12px;color:var(--muted);line-height:1.5}.table-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:12px}.table-wrap.short{max-height:320px}
-table{width:100%;border-collapse:collapse;min-width:1150px;background:#fff}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;white-space:nowrap;vertical-align:top}
+button{background:var(--accent);color:#fff;border:none;font-weight:700;cursor:pointer}
+.kpi .label{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:8px}
+.kpi .value{font-size:28px;font-weight:800;margin-bottom:4px}
+.kpi .sub{font-size:12px;color:var(--muted)}
+.section-title{margin:0 0 12px;font-size:18px}
+.small,.notes{font-size:12px;color:var(--muted);line-height:1.5}
+.table-wrap{overflow:auto;max-height:520px;border:1px solid var(--line);border-radius:12px}
+.table-wrap.short{max-height:320px}
+table{width:100%;border-collapse:collapse;min-width:1150px;background:#fff}
+th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;white-space:nowrap;vertical-align:top}
 th{position:sticky;top:0;background:#f8fbff;z-index:2;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
-.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}.pill-cc{background:#e7f0ff;color:#1d4ed8}.pill-cash{background:#eefdf3;color:#18794e}.pill-invoice{background:#fff3e8;color:#b45309}.pill-membership{background:#f2eaff;color:#6d28d9}.pill-other{background:#f3f4f6;color:#374151}.pill-match{background:#eefdf3;color:#18794e}.pill-unmatched{background:#fff3e8;color:#b45309}.pill-exact{background:#eef2ff;color:#3730a3}
-.good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}pre{white-space:pre-wrap;background:#f8fbff;border:1px solid var(--line);padding:10px 12px;border-radius:10px}
-@media (max-width:1250px){.grid-6,.grid-5,.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:760px){.grid-6,.grid-5,.grid-2{grid-template-columns:1fr}.hero h1{font-size:24px}}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}
+.pill-cc{background:#e7f0ff;color:#1d4ed8}
+.pill-cash{background:#eefdf3;color:#18794e}
+.pill-invoice{background:#fff3e8;color:#b45309}
+.pill-membership{background:#f2eaff;color:#6d28d9}
+.pill-other{background:#f3f4f6;color:#374151}
+.pill-match{background:#eefdf3;color:#18794e}
+.pill-unmatched{background:#fff3e8;color:#b45309}
+.pill-exact{background:#eef2ff;color:#3730a3}
+.good{color:var(--good)}
+.warn{color:var(--warn)}
+.bad{color:var(--bad)}
+pre{white-space:pre-wrap;background:#f8fbff;border:1px solid var(--line);padding:10px 12px;border-radius:10px}
+@media (max-width:1250px){.grid-6,.grid-5,.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){.grid-6,.grid-5,.grid-2{grid-template-columns:1fr}.hero h1{font-size:24px}}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div class="hero">
-<h1>MSS Financial Dashboard V7</h1>
-<p>Accounting-first dashboard. Stripe provides collected credit-card revenue. MSS adds cash/invoice transactions, paid status, and category enrichment. Reservation ID exact match first, fallback match second, no double counting.</p>
-</div>
+  <div class="hero">
+    <h1>MSS Financial Dashboard V7</h1>
+    <p>Accounting-first dashboard. Stripe provides collected credit-card revenue. MSS adds cash/invoice transactions, paid status, and category enrichment. Reservation ID exact match first, fallback match second, no double counting.</p>
+  </div>
 
-<div class="card">
-<h2 class="section-title">1. Upload & Settings</h2>
-<div class="grid-6">
-<div class="field"><label>Upload Stripe CSV</label><input type="file" id="stripeFile" accept=".csv,.txt,.tsv" /></div>
-<div class="field"><label>Upload MSS CSV</label><input type="file" id="mssFile" accept=".csv,.txt,.tsv" /></div>
-<div class="field"><label>Rental MSS Fee %</label><input type="number" id="rentalFeePct" value="5" min="0" step="0.01" /></div>
-<div class="field"><label>Registration MSS Fee %</label><input type="number" id="registrationFeePct" value="2.5" min="0" step="0.01" /></div>
-<div class="field"><label>Membership MSS Fee %</label><input type="number" id="membershipFeePct" value="5" min="0" step="0.01" /></div>
-<div class="field"><label>&nbsp;</label><button id="loadBtn" type="button">Load / Recalculate</button></div>
-</div>
-<div class="notes" style="margin-top:12px;">Actual collected revenue includes: Stripe credit card revenue, MSS cash paid, MSS invoice paid, and other paid offline rows. Unpaid invoice rows are shown separately and are not counted in collected revenue.</div>
-</div>
+  <div class="card">
+    <h2 class="section-title">1. Upload & Settings</h2>
+    <div class="grid-6">
+      <div class="field"><label>Upload Stripe CSV</label><input type="file" id="stripeFile" accept=".csv,.txt,.tsv" /></div>
+      <div class="field"><label>Upload MSS CSV</label><input type="file" id="mssFile" accept=".csv,.txt,.tsv" /></div>
+      <div class="field"><label>Rental MSS Fee %</label><input type="number" id="rentalFeePct" value="5" min="0" step="0.01" /></div>
+      <div class="field"><label>Registration MSS Fee %</label><input type="number" id="registrationFeePct" value="2.5" min="0" step="0.01" /></div>
+      <div class="field"><label>Membership MSS Fee %</label><input type="number" id="membershipFeePct" value="5" min="0" step="0.01" /></div>
+      <div class="field"><label>&nbsp;</label><button id="loadBtn" type="button">Load / Recalculate</button></div>
+    </div>
+    <div class="notes" style="margin-top:12px;">Actual collected revenue includes: Stripe credit card revenue, MSS cash paid, MSS invoice paid, and other paid offline rows. Unpaid invoice rows are shown separately and are not counted in collected revenue.</div>
+  </div>
 
-<div class="card">
-<h2 class="section-title">2. Filters / Drilldown</h2>
-<div class="grid-6">
-<div class="field"><label>Revenue Type</label><select id="typeFilter"><option value="All">All Types</option></select></div>
-<div class="field"><label>Source View</label><select id="sourceFilter">
-<option value="All">All Rows</option>
-<option value="Stripe Counted">Stripe Counted</option>
-<option value="MSS Cash Counted">MSS Cash Counted</option>
-<option value="MSS Invoice Paid Counted">MSS Invoice Paid Counted</option>
-<option value="MSS Invoice Unpaid">MSS Invoice Unpaid</option>
-<option value="MSS Other Offline Counted">MSS Other Offline Counted</option>
-<option value="MSS Matched Reference">MSS Matched Reference</option>
-<option value="MSS CC Unmatched Review">MSS CC Unmatched Review</option>
-</select></div>
-<div class="field"><label>Match Status</label><select id="matchFilter">
-<option value="All">All Match Status</option>
-<option value="Exact ID Match">Exact ID Match</option>
-<option value="Fallback Match">Fallback Match</option>
-<option value="Unmatched">Unmatched</option>
-<option value="Offline">Offline</option>
-<option value="Review">Review</option>
-</select></div>
-<div class="field"><label>Payment Method</label><select id="paymentFilter">
-<option value="All">All Payment Methods</option>
-<option value="Credit Card">Credit Card</option>
-<option value="Cash">Cash</option>
-<option value="Invoice">Invoice</option>
-<option value="Membership">Membership</option>
-<option value="Other Offline">Other Offline</option>
-</select></div>
-<div class="field"><label>Paid Status</label><select id="paidFilter">
-<option value="All">All Statuses</option>
-<option value="Paid">Paid</option>
-<option value="Unpaid">Unpaid</option>
-<option value="Unknown">Unknown</option>
-</select></div>
-<div class="field"><label>Facility</label><select id="facilityFilter"><option value="All">All Facilities</option></select></div>
-</div>
-</div>
+  <div class="card">
+    <h2 class="section-title">2. Filters / Drilldown</h2>
+    <div class="grid-6">
+      <div class="field"><label>Revenue Type</label><select id="typeFilter"><option value="All">All Types</option></select></div>
+      <div class="field"><label>Source View</label><select id="sourceFilter">
+        <option value="All">All Rows</option>
+        <option value="Stripe Counted">Stripe Counted</option>
+        <option value="MSS Cash Counted">MSS Cash Counted</option>
+        <option value="MSS Invoice Paid Counted">MSS Invoice Paid Counted</option>
+        <option value="MSS Invoice Unpaid">MSS Invoice Unpaid</option>
+        <option value="MSS Other Offline Counted">MSS Other Offline Counted</option>
+        <option value="MSS Matched Reference">MSS Matched Reference</option>
+        <option value="MSS CC Unmatched Review">MSS CC Unmatched Review</option>
+      </select></div>
+      <div class="field"><label>Match Status</label><select id="matchFilter">
+        <option value="All">All Match Status</option>
+        <option value="Exact ID Match">Exact ID Match</option>
+        <option value="Fallback Match">Fallback Match</option>
+        <option value="Unmatched">Unmatched</option>
+        <option value="Offline">Offline</option>
+        <option value="Review">Review</option>
+      </select></div>
+      <div class="field"><label>Payment Method</label><select id="paymentFilter">
+        <option value="All">All Payment Methods</option>
+        <option value="Credit Card">Credit Card</option>
+        <option value="Cash">Cash</option>
+        <option value="Invoice">Invoice</option>
+        <option value="Membership">Membership</option>
+        <option value="Other Offline">Other Offline</option>
+      </select></div>
+      <div class="field"><label>Paid Status</label><select id="paidFilter">
+        <option value="All">All Statuses</option>
+        <option value="Paid">Paid</option>
+        <option value="Unpaid">Unpaid</option>
+        <option value="Unknown">Unknown</option>
+      </select></div>
+      <div class="field"><label>Facility</label><select id="facilityFilter"><option value="All">All Facilities</option></select></div>
+    </div>
+  </div>
 
-<div class="grid-5">
-<div class="card kpi"><div class="label">Actual Collected Revenue</div><div class="value good" id="kpiCollectedRevenue">$0.00</div><div class="sub" id="kpiCollectedCount">0 counted transactions</div></div>
-<div class="card kpi"><div class="label">Facility Net Revenue</div><div class="value good" id="kpiFacilityNet">$0.00</div><div class="sub">Base price minus Stripe fee</div></div>
-<div class="card kpi"><div class="label">MSS Fee Revenue</div><div class="value" id="kpiMssFee">$0.00</div><div class="sub">Calculated from counted rows</div></div>
-<div class="card kpi"><div class="label">Stripe Fees</div><div class="value warn" id="kpiStripeFees">$0.00</div><div class="sub">Only counted Stripe rows</div></div>
-<div class="card kpi"><div class="label">Invoice Unpaid</div><div class="value bad" id="kpiInvoiceUnpaid">$0.00</div><div class="sub" id="kpiInvoiceUnpaidCount">0 transactions</div></div>
+  <div class="grid-5">
+    <div class="card kpi"><div class="label">Actual Collected Revenue</div><div class="value good" id="kpiCollectedRevenue">$0.00</div><div class="sub" id="kpiCollectedCount">0 counted transactions</div></div>
+    <div class="card kpi"><div class="label">Facility Net Revenue</div><div class="value good" id="kpiFacilityNet">$0.00</div><div class="sub">Base price minus Stripe fee</div></div>
+    <div class="card kpi"><div class="label">MSS Fee Revenue</div><div class="value" id="kpiMssFee">$0.00</div><div class="sub">Calculated from counted rows</div></div>
+    <div class="card kpi"><div class="label">Stripe Fees</div><div class="value warn" id="kpiStripeFees">$0.00</div><div class="sub">Only counted Stripe rows</div></div>
+    <div class="card kpi"><div class="label">Invoice Unpaid</div><div class="value bad" id="kpiInvoiceUnpaid">$0.00</div><div class="sub" id="kpiInvoiceUnpaidCount">0 transactions</div></div>
 
-<div class="card kpi"><div class="label">Credit Card Revenue</div><div class="value" id="kpiCCRevenue">$0.00</div><div class="sub" id="kpiCCCount">0 transactions</div></div>
-<div class="card kpi"><div class="label">Cash Revenue</div><div class="value" id="kpiCashRevenue">$0.00</div><div class="sub" id="kpiCashCount">0 transactions</div></div>
-<div class="card kpi"><div class="label">Invoice Paid Revenue</div><div class="value" id="kpiInvoicePaidRevenue">$0.00</div><div class="sub" id="kpiInvoicePaidCount">0 transactions</div></div>
-<div class="card kpi"><div class="label">Exact ID Matches</div><div class="value" id="kpiExactMatches">0</div><div class="sub">Reservation ID exact</div></div>
-<div class="card kpi"><div class="label">Fallback Matches</div><div class="value" id="kpiFallbackMatches">0</div><div class="sub">Amount/date backup</div></div>
-</div>
+    <div class="card kpi"><div class="label">Credit Card Revenue</div><div class="value" id="kpiCCRevenue">$0.00</div><div class="sub" id="kpiCCCount">0 transactions</div></div>
+    <div class="card kpi"><div class="label">Cash Revenue</div><div class="value" id="kpiCashRevenue">$0.00</div><div class="sub" id="kpiCashCount">0 transactions</div></div>
+    <div class="card kpi"><div class="label">Invoice Paid Revenue</div><div class="value" id="kpiInvoicePaidRevenue">$0.00</div><div class="sub" id="kpiInvoicePaidCount">0 transactions</div></div>
+    <div class="card kpi"><div class="label">Exact ID Matches</div><div class="value" id="kpiExactMatches">0</div><div class="sub">Reservation ID exact</div></div>
+    <div class="card kpi"><div class="label">Fallback Matches</div><div class="value" id="kpiFallbackMatches">0</div><div class="sub">Amount/date backup</div></div>
+  </div>
 
-<div class="grid-2">
-<div class="card">
-<h2 class="section-title">Category Totals (Collected Revenue)</h2>
-<div class="table-wrap short"><table><thead><tr><th>Category</th><th>Revenue</th><th>Facility Net</th><th>MSS Fee</th><th>Count</th></tr></thead><tbody id="categoryBody"><tr><td colspan="5">No data loaded.</td></tr></tbody></table></div>
-</div>
-<div class="card">
-<h2 class="section-title">Accounting Buckets</h2>
-<div class="table-wrap short"><table><thead><tr><th>Bucket</th><th>Count</th><th>Revenue</th></tr></thead><tbody id="bucketBody"><tr><td colspan="3">No data loaded.</td></tr></tbody></table></div>
-</div>
-</div>
+  <div class="grid-2">
+    <div class="card">
+      <h2 class="section-title">Category Totals (Collected Revenue)</h2>
+      <div class="table-wrap short">
+        <table><thead><tr><th>Category</th><th>Revenue</th><th>Facility Net</th><th>MSS Fee</th><th>Count</th></tr></thead><tbody id="categoryBody"><tr><td colspan="5">No data loaded.</td></tr></tbody></table>
+      </div>
+    </div>
+    <div class="card">
+      <h2 class="section-title">Accounting Buckets</h2>
+      <div class="table-wrap short">
+        <table><thead><tr><th>Bucket</th><th>Count</th><th>Revenue</th></tr></thead><tbody id="bucketBody"><tr><td colspan="3">No data loaded.</td></tr></tbody></table>
+      </div>
+    </div>
+  </div>
 
-<div class="card">
-<h2 class="section-title">Filtered Detail</h2>
-<div class="table-wrap">
-<table>
-<thead><tr><th>Date</th><th>Display Source</th><th>Counted?</th><th>Match Status</th><th>Reservation ID</th><th>Facility</th><th>Name</th><th>Revenue Type</th><th>Payment Method</th><th>Paid Status</th><th>Customer Total</th><th>Base Price</th><th>MSS Fee</th><th>Stripe Fee</th><th>Facility Net</th><th>Sport</th><th>Description</th></tr></thead>
-<tbody id="detailBody"><tr><td colspan="17">No data loaded.</td></tr></tbody>
-</table>
-</div>
-<div class="small" id="statusLine" style="margin-top:10px;">No data loaded.</div>
-</div>
+  <div class="card">
+    <h2 class="section-title">Filtered Detail</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Date</th><th>Display Source</th><th>Counted?</th><th>Match Status</th><th>Reservation ID</th><th>Facility</th><th>Name</th><th>Revenue Type</th><th>Payment Method</th><th>Paid Status</th><th>Customer Total</th><th>Base Price</th><th>MSS Fee</th><th>Stripe Fee</th><th>Facility Net</th><th>Sport</th><th>Description</th></tr></thead>
+        <tbody id="detailBody"><tr><td colspan="17">No data loaded.</td></tr></tbody>
+      </table>
+    </div>
+    <div class="small" id="statusLine" style="margin-top:10px;">No data loaded.</div>
+  </div>
 
-<div class="card">
-<h2 class="section-title">Diagnostics</h2>
-<pre id="diagnostics">No diagnostics yet.</pre>
-</div>
+  <div class="card">
+    <h2 class="section-title">Diagnostics</h2>
+    <pre id="diagnostics">No diagnostics yet.</pre>
+  </div>
 </div>
 
 <script>
 const $ = (id) => document.getElementById(id);
-let stripeRaw = [], mssRaw = [], allRows = [], filteredRows = [];
+let stripeRaw = [];
+let mssRaw = [];
+let allRows = [];
+let filteredRows = [];
 
 function safe(v){ return (v ?? '').toString().trim(); }
 function lower(v){ return safe(v).toLowerCase(); }
 function nHeader(v){ return safe(v).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
 function money(v){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v||0)); }
-function escapeHtml(str){ return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function escapeHtml(str){
+  return String(str == null ? '' : str)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#39;');
+}
 
 function parseDelimited(text){
-  const rows = []; let row = []; let cell = ''; let inQuotes = false; let delimiter = ',';
-  const firstLine = text.split(/
-?
-/)[0] || '';
-  if((firstLine.match(/	/g)||[]).length > (firstLine.match(/,/g)||[]).length) delimiter = '	';
+  const rows = [];
+  let row = [];
+  let cell = '';
+  let inQuotes = false;
+  let delimiter = ',';
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  if((firstLine.match(/\t/g)||[]).length > (firstLine.match(/,/g)||[]).length) delimiter = '\t';
+
   for(let i=0;i<text.length;i++){
-    const ch = text[i], next = text[i+1];
-    if(ch === '"'){ if(inQuotes && next === '"'){ cell += '"'; i++; } else inQuotes = !inQuotes; }
-    else if(ch === delimiter && !inQuotes){ row.push(cell); cell = ''; }
-    else if((ch === '
-' || ch === '
-') && !inQuotes){
-      if(ch === '
-' && next === '
-') i++;
-      row.push(cell); if(row.some(c => safe(c) !== '')) rows.push(row);
-      row = []; cell = '';
-    } else cell += ch;
+    const ch = text[i];
+    const next = text[i+1];
+    if(ch === '"'){
+      if(inQuotes && next === '"'){ cell += '"'; i++; }
+      else inQuotes = !inQuotes;
+    } else if(ch === delimiter && !inQuotes){
+      row.push(cell);
+      cell = '';
+    } else if((ch === '\n' || ch === '\r') && !inQuotes){
+      if(ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if(row.some(c => safe(c) !== '')) rows.push(row);
+      row = [];
+      cell = '';
+    } else {
+      cell += ch;
+    }
   }
-  if(cell.length || row.length){ row.push(cell); if(row.some(c => safe(c) !== '')) rows.push(row); }
+  if(cell.length || row.length){
+    row.push(cell);
+    if(row.some(c => safe(c) !== '')) rows.push(row);
+  }
   if(!rows.length) return [];
-  const headers = rows[0].map((h,i)=>nHeader(h) || ('unnamed ' + i));
-  return rows.slice(1).map(r => { const obj = {}; headers.forEach((h,i)=>obj[h] = r[i] ?? ''); return obj; });
+  const headers = rows[0].map((h, i) => nHeader(h) || ('unnamed ' + i));
+  return rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = r[i] ?? '');
+    return obj;
+  });
 }
 
 function getField(obj, names){
@@ -169,33 +227,67 @@ function getField(obj, names){
 }
 
 function parseMoney(v){
-  let s = safe(v); if(!s) return 0;
-  let negative = false; if(s.includes('(') && s.includes(')')) negative = true;
+  let s = safe(v);
+  if(!s) return 0;
+  let negative = false;
+  if(s.includes('(') && s.includes(')')) negative = true;
   s = s.replace(/[$,()]/g,'');
-  const n = Number(s); if(!Number.isFinite(n)) return 0;
+  const n = Number(s);
+  if(!Number.isFinite(n)) return 0;
   return negative ? -n : n;
 }
 
 function parseDateFlexible(value){
-  const s = safe(value); if(!s) return null;
-  if(/^\d{4}-\d{2}-\d{2}/.test(s)){ const d = new Date(s.length === 10 ? s + 'T00:00:00' : s); return isNaN(d) ? null : d; }
+  const s = safe(value);
+  if(!s) return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const d = new Date(s.length === 10 ? s + 'T00:00:00' : s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
   const mdY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
-  if(mdY){ let y = Number(mdY[3]); if(y < 100) y += 2000; const d = new Date(y, Number(mdY[1])-1, Number(mdY[2])); return isNaN(d) ? null : d; }
-  const d = new Date(s); return isNaN(d) ? null : d;
+  if(mdY){
+    let y = Number(mdY[3]);
+    if(y < 100) y += 2000;
+    const d = new Date(y, Number(mdY[1]) - 1, Number(mdY[2]));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 function dateText(d){ return d ? d.toISOString().slice(0,10) : ''; }
-function normalizeResId(v){ return safe(v).toUpperCase().replace(/[^A-Z0-9]/g,''); }
-function extractReservationIdFromJsonString(text){ const s = safe(text); const m = s.match(/"reservationId"\s*:\s*"([^"]+)"/i); return m ? normalizeResId(m[1]) : ''; }
-function extractReservationIdFromDescription(text){ const s = safe(text); const m = s.match(/reservation\s*id\s*:\s*([A-Za-z0-9]+)/i); return m ? normalizeResId(m[1]) : ''; }
 
+function normalizeResId(v){ return safe(v).toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function extractReservationIdFromJsonString(text){
+  const s = safe(text);
+  const m = s.match(/"reservationId"\s*:\s*"([^"]+)"/i);
+  return m ? normalizeResId(m[1]) : '';
+}
+function extractReservationIdFromDescription(text){
+  const s = safe(text);
+  const m = s.match(/reservation\s*id\s*:\s*([A-Za-z0-9]+)/i);
+  return m ? normalizeResId(m[1]) : '';
+}
 function findStripeReservationId(row){
-  for(const [k,v] of Object.entries(row||{})){ if(lower(k).includes('metadata')){ const x = extractReservationIdFromJsonString(v); if(x) return x; } }
-  for(const [k,v] of Object.entries(row||{})){ if(lower(k).includes('description')){ const x = extractReservationIdFromDescription(v); if(x) return x; } }
+  for(const [k,v] of Object.entries(row||{})){
+    if(lower(k).includes('metadata')){
+      const x = extractReservationIdFromJsonString(v);
+      if(x) return x;
+    }
+  }
+  for(const [k,v] of Object.entries(row||{})){
+    if(lower(k).includes('description')){
+      const x = extractReservationIdFromDescription(v);
+      if(x) return x;
+    }
+  }
   return '';
 }
 function findMssReservationId(row){
   const direct = getField(row,['Reservation Ids','Reservation Id','Reservation ID']);
-  if(direct){ const x = normalizeResId(direct); if(x) return x; }
+  if(direct){
+    const x = normalizeResId(direct);
+    if(x) return x;
+  }
   return '';
 }
 
@@ -218,6 +310,7 @@ function classifyMSSPaymentMethod(row){
   if(f.includes('cash') || f.includes('check')) return 'Cash';
   return form;
 }
+
 function classifyMSSPaidStatus(row, paymentMethod){
   const raw = lower(getField(row,['Paid Status','Paid/Unpaid','Payment Status','Status']));
   if(raw.includes('unpaid')) return 'Unpaid';
@@ -225,6 +318,7 @@ function classifyMSSPaidStatus(row, paymentMethod){
   if(paymentMethod === 'Credit Card' || paymentMethod === 'Membership') return 'Paid';
   return 'Unknown';
 }
+
 function classifyMSSRevenueType(row){
   const reservationType = lower(getField(row,['Reservation Type']));
   const title = lower(getField(row,['Title','Reservation Title','Description','Name']));
@@ -241,6 +335,7 @@ function classifyMSSRevenueType(row){
   if(sport || title.includes('reservation') || title.includes('rental') || joined.includes('court') || joined.includes('field')) return 'Rental';
   return 'Rental';
 }
+
 function classifyStripeRevenueType(row){
   const values = Object.values(row).map(v => lower(v));
   const blob = values.join(' | ');
@@ -258,6 +353,7 @@ function classifyStripeRevenueType(row){
   if(has('training')) return 'Training';
   return 'Rental';
 }
+
 function classifyStripeFacility(row){ return safe(getField(row,['payment_metadata[facilityName]','payment metadata facilityName','Facility Name'])) || 'Unknown'; }
 function classifyStripeName(row){ return safe(getField(row,['payment_metadata[memberName]','payment metadata memberName','Customer Name','Customer'])) || ''; }
 function stripeAmount(row){ return parseMoney(getField(row,['Amount'])); }
@@ -266,33 +362,78 @@ function stripeType(row){ return lower(getField(row,['Type'])); }
 function isStripeCountableType(t){ return ['charge','payment','refund'].includes(t); }
 
 function buildRows(){
-  const stripeRows = [], mssCC = [], mssCounted = [];
+  const stripeRows = [];
+  const mssCC = [];
+  const mssCounted = [];
+
   for(const row of stripeRaw){
-    const type = stripeType(row); if(!isStripeCountableType(type)) continue;
-    const amount = stripeAmount(row); if(!amount) continue;
-    const fee = stripeFee(row); const d = parseDateFlexible(getField(row,['Created (UTC)','Created','Date']));
-    const reservationId = findStripeReservationId(row); const revenueType = classifyStripeRevenueType(row);
-    const rate = feeRateForType(revenueType); const mssFee = amount * (rate / (1 + rate)); const basePrice = amount - mssFee;
+    const type = stripeType(row);
+    if(!isStripeCountableType(type)) continue;
+    const amount = stripeAmount(row);
+    if(!amount) continue;
+    const fee = stripeFee(row);
+    const d = parseDateFlexible(getField(row,['Created (UTC)','Created','Date']));
+    const reservationId = findStripeReservationId(row);
+    const revenueType = classifyStripeRevenueType(row);
+    const rate = feeRateForType(revenueType);
+    const mssFee = amount * (rate / (1 + rate));
+    const basePrice = amount - mssFee;
+
     stripeRows.push({
-      id:'S-' + (stripeRows.length + 1), displaySource:'Stripe Counted', sourceType:'Stripe Counted', counted:true, matchStatus:'Unmatched',
-      paymentMethod:'Credit Card', paidStatus:'Paid', reservationId, dateObj:d, date:dateText(d),
-      facility:classifyStripeFacility(row), name:classifyStripeName(row), revenueType,
-      customerTotal:amount, basePrice, mssFee, stripeFee:fee, facilityNet:basePrice - fee,
-      sport:'', description:safe(getField(row,['Description','Invoice Description','Product','Product Name'])) || 'Stripe Transaction', raw:row
+      id:'S-' + (stripeRows.length + 1),
+      displaySource:'Stripe Counted',
+      sourceType:'Stripe Counted',
+      counted:true,
+      matchStatus:'Unmatched',
+      paymentMethod:'Credit Card',
+      paidStatus:'Paid',
+      reservationId,
+      dateObj:d,
+      date:dateText(d),
+      facility:classifyStripeFacility(row),
+      name:classifyStripeName(row),
+      revenueType,
+      customerTotal:amount,
+      basePrice,
+      mssFee,
+      stripeFee:fee,
+      facilityNet:basePrice - fee,
+      sport:'',
+      description:safe(getField(row,['Description','Invoice Description','Product','Product Name'])) || 'Stripe Transaction',
+      raw:row
     });
   }
+
   for(const row of mssRaw){
-    const paymentMethod = classifyMSSPaymentMethod(row), paidStatus = classifyMSSPaidStatus(row, paymentMethod);
+    const paymentMethod = classifyMSSPaymentMethod(row);
+    const paidStatus = classifyMSSPaidStatus(row, paymentMethod);
     const d = parseDateFlexible(getField(row,['Reservation Date','Date','Created']));
-    const amount = parseMoney(getField(row,['Total','Reservation Total','Price','Amount'])); if(!amount) continue;
-    const revenueType = classifyMSSRevenueType(row), rate = feeRateForType(revenueType), reservationId = findMssReservationId(row);
+    const amount = parseMoney(getField(row,['Total','Reservation Total','Price','Amount']));
+    if(!amount) continue;
+    const revenueType = classifyMSSRevenueType(row);
+    const rate = feeRateForType(revenueType);
+    const reservationId = findMssReservationId(row);
+
     const common = {
-      id:'M-' + (mssCounted.length + mssCC.length + 1), reservationId, dateObj:d, date:dateText(d),
+      id:'M-' + (mssCounted.length + mssCC.length + 1),
+      reservationId,
+      dateObj:d,
+      date:dateText(d),
       facility:safe(getField(row,['Facility','Area Reserved','Location'])) || 'Unspecified',
-      name:safe(getField(row,['Customer Name','Name'])), revenueType, paymentMethod, paidStatus,
-      customerTotal:amount, basePrice:amount, mssFee:amount * rate, stripeFee:0, facilityNet:amount,
-      sport:safe(getField(row,['Sport'])), description:safe(getField(row,['Title','Reservation Title','Description'])) || 'MSS Transaction', raw:row
+      name:safe(getField(row,['Customer Name','Name'])),
+      revenueType,
+      paymentMethod,
+      paidStatus,
+      customerTotal:amount,
+      basePrice:amount,
+      mssFee:amount * rate,
+      stripeFee:0,
+      facilityNet:amount,
+      sport:safe(getField(row,['Sport'])),
+      description:safe(getField(row,['Title','Reservation Title','Description'])) || 'MSS Transaction',
+      raw:row
     };
+
     if(paymentMethod === 'Credit Card'){
       mssCC.push({...common, displaySource:'MSS Matched Reference', sourceType:'MSS Matched Reference', counted:false, matchStatus:'Unmatched'});
     } else if(paymentMethod === 'Invoice'){
@@ -304,6 +445,7 @@ function buildRows(){
       mssCounted.push({...common, displaySource:'MSS Other Offline Counted', sourceType:'MSS Other Offline Counted', counted:paidStatus !== 'Unpaid', matchStatus:'Offline'});
     }
   }
+
   for(const s of stripeRows){
     if(!s.reservationId) continue;
     const best = mssCC.find(m => m.matchStatus === 'Unmatched' && m.reservationId && m.reservationId === s.reservationId);
@@ -316,13 +458,14 @@ function buildRows(){
       best.matchStatus = 'Exact ID Match';
     }
   }
+
   for(const s of stripeRows){
     if(s.matchStatus !== 'Unmatched') continue;
     const best = mssCC.find(m => {
       if(m.matchStatus !== 'Unmatched') return false;
       if(Math.abs(m.customerTotal - s.basePrice) >= 0.01) return false;
       if(!m.dateObj || !s.dateObj) return false;
-      const diffDays = Math.abs((m.dateObj - s.dateObj) / (1000*60*60*24));
+      const diffDays = Math.abs((m.dateObj - s.dateObj) / (1000 * 60 * 60 * 24));
       return diffDays <= 3;
     });
     if(best){
@@ -334,6 +477,7 @@ function buildRows(){
       best.matchStatus = 'Fallback Match';
     }
   }
+
   for(const m of mssCC){
     if(m.matchStatus === 'Unmatched'){
       m.displaySource = 'MSS CC Unmatched Review';
@@ -342,22 +486,36 @@ function buildRows(){
       m.matchStatus = 'Review';
     }
   }
+
   return [].concat(stripeRows, mssCounted, mssCC);
 }
 
 function updateFilterOptions(){
-  const typeSet = new Set(['All']), facilitySet = new Set(['All']);
-  for(const r of allRows){ typeSet.add(r.revenueType || 'Unknown'); facilitySet.add(r.facility || 'Unknown'); }
-  const typeSelect = $('typeFilter'), currentType = typeSelect.value;
+  const typeSet = new Set(['All']);
+  const facilitySet = new Set(['All']);
+  for(const r of allRows){
+    typeSet.add(r.revenueType || 'Unknown');
+    facilitySet.add(r.facility || 'Unknown');
+  }
+  const typeSelect = $('typeFilter');
+  const currentType = typeSelect.value;
   typeSelect.innerHTML = Array.from(typeSet).map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>').join('');
   if(typeSet.has(currentType)) typeSelect.value = currentType;
-  const facilitySelect = $('facilityFilter'), currentFacility = facilitySelect.value;
+
+  const facilitySelect = $('facilityFilter');
+  const currentFacility = facilitySelect.value;
   facilitySelect.innerHTML = Array.from(facilitySet).map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>').join('');
   if(facilitySet.has(currentFacility)) facilitySelect.value = currentFacility;
 }
 
 function applyFilters(){
-  const type = $('typeFilter').value, source = $('sourceFilter').value, match = $('matchFilter').value, payment = $('paymentFilter').value, paid = $('paidFilter').value, facility = $('facilityFilter').value;
+  const type = $('typeFilter').value;
+  const source = $('sourceFilter').value;
+  const match = $('matchFilter').value;
+  const payment = $('paymentFilter').value;
+  const paid = $('paidFilter').value;
+  const facility = $('facilityFilter').value;
+
   filteredRows = allRows.filter(r => {
     if(type !== 'All' && r.revenueType !== type) return false;
     if(source !== 'All' && r.sourceType !== source) return false;
@@ -379,6 +537,7 @@ function renderKPIs(){
   const cc = counted.filter(r => r.paymentMethod === 'Credit Card');
   const cash = counted.filter(r => r.paymentMethod === 'Cash');
   const invPaid = counted.filter(r => r.paymentMethod === 'Invoice');
+
   $('kpiCollectedRevenue').textContent = money(collectedRevenue);
   $('kpiCollectedCount').textContent = counted.length + ' counted transactions';
   $('kpiFacilityNet').textContent = money(facilityNet);
@@ -397,15 +556,25 @@ function renderKPIs(){
 }
 
 function renderCategoryTotals(){
-  const body = $('categoryBody'), counted = filteredRows.filter(r => r.counted);
-  if(!counted.length){ body.innerHTML = '<tr><td colspan="5">No filtered counted rows.</td></tr>'; return; }
+  const body = $('categoryBody');
+  const counted = filteredRows.filter(r => r.counted);
+  if(!counted.length){
+    body.innerHTML = '<tr><td colspan="5">No filtered counted rows.</td></tr>';
+    return;
+  }
   const map = new Map();
   for(const r of counted){
     const key = r.revenueType || 'Unknown';
     if(!map.has(key)) map.set(key, {revenue:0, facilityNet:0, mssFee:0, count:0});
-    const x = map.get(key); x.revenue += r.customerTotal; x.facilityNet += r.facilityNet; x.mssFee += r.mssFee; x.count += 1;
+    const x = map.get(key);
+    x.revenue += r.customerTotal;
+    x.facilityNet += r.facilityNet;
+    x.mssFee += r.mssFee;
+    x.count += 1;
   }
-  body.innerHTML = Array.from(map.entries()).sort((a,b)=>b[1].revenue-a[1].revenue).map(entry => '<tr><td>' + escapeHtml(entry[0]) + '</td><td>' + money(entry[1].revenue) + '</td><td>' + money(entry[1].facilityNet) + '</td><td>' + money(entry[1].mssFee) + '</td><td>' + entry[1].count + '</td></tr>').join('');
+  body.innerHTML = Array.from(map.entries()).sort((a,b)=>b[1].revenue-a[1].revenue).map(entry =>
+    '<tr><td>' + escapeHtml(entry[0]) + '</td><td>' + money(entry[1].revenue) + '</td><td>' + money(entry[1].facilityNet) + '</td><td>' + money(entry[1].mssFee) + '</td><td>' + entry[1].count + '</td></tr>'
+  ).join('');
 }
 
 function renderBuckets(){
@@ -421,7 +590,9 @@ function renderBuckets(){
     ['MSS Matched Reference', filteredRows.filter(r => r.sourceType === 'MSS Matched Reference')],
     ['MSS CC Unmatched Review', filteredRows.filter(r => r.sourceType === 'MSS CC Unmatched Review')]
   ];
-  body.innerHTML = buckets.map(([name,arr]) => '<tr><td>' + escapeHtml(name) + '</td><td>' + arr.length + '</td><td>' + money(arr.reduce((s,r)=>s+r.customerTotal,0)) + '</td></tr>').join('');
+  body.innerHTML = buckets.map(([name,arr]) =>
+    '<tr><td>' + escapeHtml(name) + '</td><td>' + arr.length + '</td><td>' + money(arr.reduce((s,r)=>s+r.customerTotal,0)) + '</td></tr>'
+  ).join('');
 }
 
 function paymentPill(method){
@@ -431,6 +602,7 @@ function paymentPill(method){
   if(method === 'Membership') return '<span class="pill pill-membership">Membership</span>';
   return '<span class="pill pill-other">' + escapeHtml(method) + '</span>';
 }
+
 function matchPill(status){
   if(status === 'Exact ID Match') return '<span class="pill pill-exact">Exact ID Match</span>';
   if(status === 'Fallback Match') return '<span class="pill pill-match">Fallback Match</span>';
@@ -441,10 +613,32 @@ function matchPill(status){
 
 function renderDetail(){
   const body = $('detailBody');
-  if(!filteredRows.length){ body.innerHTML = '<tr><td colspan="17">No rows match the current filters.</td></tr>'; $('statusLine').textContent = 'No rows match the current filters.'; return; }
+  if(!filteredRows.length){
+    body.innerHTML = '<tr><td colspan="17">No rows match the current filters.</td></tr>';
+    $('statusLine').textContent = 'No rows match the current filters.';
+    return;
+  }
   const rows = filteredRows.slice().sort((a,b) => (b.dateObj ? b.dateObj.getTime() : 0) - (a.dateObj ? a.dateObj.getTime() : 0));
   body.innerHTML = rows.map(r =>
-    '<tr><td>' + escapeHtml(r.date) + '</td><td>' + escapeHtml(r.displaySource) + '</td><td>' + (r.counted ? '<span class="good">Yes</span>' : '<span class="warn">No</span>') + '</td><td>' + matchPill(r.matchStatus) + '</td><td>' + escapeHtml(r.reservationId) + '</td><td>' + escapeHtml(r.facility) + '</td><td>' + escapeHtml(r.name) + '</td><td>' + escapeHtml(r.revenueType) + '</td><td>' + paymentPill(r.paymentMethod) + '</td><td>' + escapeHtml(r.paidStatus) + '</td><td>' + money(r.customerTotal) + '</td><td>' + money(r.basePrice) + '</td><td>' + money(r.mssFee) + '</td><td>' + money(r.stripeFee) + '</td><td>' + money(r.facilityNet) + '</td><td>' + escapeHtml(r.sport) + '</td><td>' + escapeHtml(r.description) + '</td></tr>'
+    '<tr>' +
+    '<td>' + escapeHtml(r.date) + '</td>' +
+    '<td>' + escapeHtml(r.displaySource) + '</td>' +
+    '<td>' + (r.counted ? '<span class="good">Yes</span>' : '<span class="warn">No</span>') + '</td>' +
+    '<td>' + matchPill(r.matchStatus) + '</td>' +
+    '<td>' + escapeHtml(r.reservationId) + '</td>' +
+    '<td>' + escapeHtml(r.facility) + '</td>' +
+    '<td>' + escapeHtml(r.name) + '</td>' +
+    '<td>' + escapeHtml(r.revenueType) + '</td>' +
+    '<td>' + paymentPill(r.paymentMethod) + '</td>' +
+    '<td>' + escapeHtml(r.paidStatus) + '</td>' +
+    '<td>' + money(r.customerTotal) + '</td>' +
+    '<td>' + money(r.basePrice) + '</td>' +
+    '<td>' + money(r.mssFee) + '</td>' +
+    '<td>' + money(r.stripeFee) + '</td>' +
+    '<td>' + money(r.facilityNet) + '</td>' +
+    '<td>' + escapeHtml(r.sport) + '</td>' +
+    '<td>' + escapeHtml(r.description) + '</td>' +
+    '</tr>'
   ).join('');
   const counted = filteredRows.filter(r => r.counted);
   $('statusLine').textContent = filteredRows.length + ' rows shown | ' + counted.length + ' counted | Collected revenue ' + money(counted.reduce((s,r)=>s+r.customerTotal,0));
@@ -459,6 +653,7 @@ function renderDiagnostics(){
   const invUnpaid = allRows.filter(r => r.sourceType === 'MSS Invoice Unpaid');
   const cash = allRows.filter(r => r.sourceType === 'MSS Cash Counted');
   const review = allRows.filter(r => r.sourceType === 'MSS CC Unmatched Review');
+
   $('diagnostics').textContent =
     'Stripe rows loaded: ' + stripeRaw.length + '\n' +
     'MSS rows loaded: ' + mssRaw.length + '\n\n' +
@@ -480,27 +675,51 @@ function renderDiagnostics(){
 }
 
 function updateFilterOptions(){
-  const typeSet = new Set(['All']), facilitySet = new Set(['All']);
-  for(const r of allRows){ typeSet.add(r.revenueType || 'Unknown'); facilitySet.add(r.facility || 'Unknown'); }
-  const typeSelect = $('typeFilter'), currentType = typeSelect.value;
+  const typeSet = new Set(['All']);
+  const facilitySet = new Set(['All']);
+  for(const r of allRows){
+    typeSet.add(r.revenueType || 'Unknown');
+    facilitySet.add(r.facility || 'Unknown');
+  }
+  const typeSelect = $('typeFilter');
+  const currentType = typeSelect.value;
   typeSelect.innerHTML = Array.from(typeSet).map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>').join('');
   if(typeSet.has(currentType)) typeSelect.value = currentType;
-  const facilitySelect = $('facilityFilter'), currentFacility = facilitySelect.value;
+
+  const facilitySelect = $('facilityFilter');
+  const currentFacility = facilitySelect.value;
   facilitySelect.innerHTML = Array.from(facilitySet).map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>').join('');
   if(facilitySet.has(currentFacility)) facilitySelect.value = currentFacility;
 }
-function populateAndRender(){ updateFilterOptions(); applyFilters(); renderKPIs(); renderCategoryTotals(); renderBuckets(); renderDetail(); renderDiagnostics(); }
+
+function populateAndRender(){
+  updateFilterOptions();
+  applyFilters();
+  renderKPIs();
+  renderCategoryTotals();
+  renderBuckets();
+  renderDetail();
+  renderDiagnostics();
+}
 
 async function loadFiles(){
-  const stripeFile = $('stripeFile').files[0], mssFile = $('mssFile').files[0];
+  const stripeFile = $('stripeFile').files[0];
+  const mssFile = $('mssFile').files[0];
   stripeRaw = stripeFile ? parseDelimited(await stripeFile.text()) : [];
   mssRaw = mssFile ? parseDelimited(await mssFile.text()) : [];
   allRows = buildRows();
   populateAndRender();
 }
 
-$('loadBtn').addEventListener('click', () => { loadFiles().catch(err => { $('diagnostics').textContent = 'Error loading files: ' + (err && err.message ? err.message : err); }); });
-['typeFilter','sourceFilter','matchFilter','paymentFilter','paidFilter','facilityFilter','rentalFeePct','registrationFeePct','membershipFeePct'].forEach(id => { $(id).addEventListener('change', populateAndRender); });
+$('loadBtn').addEventListener('click', () => {
+  loadFiles().catch(err => {
+    $('diagnostics').textContent = 'Error loading files: ' + (err && err.message ? err.message : err);
+  });
+});
+
+['typeFilter','sourceFilter','matchFilter','paymentFilter','paidFilter','facilityFilter','rentalFeePct','registrationFeePct','membershipFeePct'].forEach(id => {
+  $(id).addEventListener('change', populateAndRender);
+});
 </script>
 </body>
 </html>

@@ -255,7 +255,7 @@ function classifyMSSCategory(row){
   if(reservationType.includes('league') || reservationType.includes('tournament') || title.includes('league') || title.includes('tournament') || title.includes('event')) return 'League/Tournament';
   if(title.includes('party') || title.includes('birthday')) return 'Party';
   if(joined.includes('rental_package') || joined.includes('rentalpackage') || title.includes('rental package')) return 'Rental Package';
-  if(title.includes('cancel')) return 'Cancellation Fee';
+  if(title.includes('cancel')) return 'Rental';
   if(title.includes('training')) return 'Training';
   if(sport || title.includes('reservation') || title.includes('rental') || joined.includes('court') || joined.includes('field')) return 'Rental';
   return 'Rental';
@@ -274,7 +274,7 @@ function classifyStripeCategory(row){
   if(has('league') || has('tournament') || has('event')) return 'League/Tournament';
   if(has('party') || has('birthday')) return 'Party';
   if(exactVals.has('rental_package') || exactVals.has('rentalpackage') || has('rental package')) return 'Rental Package';
-  if(has('cancel') || has('late fee')) return 'Cancellation Fee';
+  if(has('cancel') || has('late fee')) return 'Rental';
   if(has('training')) return 'Training';
   return 'Rental';
 }

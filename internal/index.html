@@ -252,13 +252,20 @@ function classifyMSSPaidStatus(row, paymentMethod){
   if(paymentMethod === 'Credit Card' || paymentMethod === 'Membership') return 'Paid';
   return 'Unknown';
 }
-
 function classifyMSSCategory(row){
+  const paymentMethod = classifyMSSPaymentMethod(row);
+  const paidStatus = classifyMSSPaidStatus(row, paymentMethod);
+
+  // 🔴 NEW: Invoice override
+  if(paymentMethod === 'Invoice' && paidStatus === 'Paid'){
+    return 'Invoice';
+  }
+
   const reservationType = lower(getField(row,['Reservation Type']));
   const title = lower(getField(row,['Title','Reservation Title','Description','Name']));
   const sport = lower(getField(row,['Sport']));
-  const paymentMethod = classifyMSSPaymentMethod(row);
   const joined = Object.values(row).map(v => lower(v)).join(' | ');
+
   if(paymentMethod === 'Membership' || reservationType.includes('member') || title.includes('membership')) return 'Membership';
   if(reservationType.includes('camp') || reservationType.includes('class') || title.includes('camp') || title.includes('clinic')) return 'Camp';
   if(reservationType.includes('league') || reservationType.includes('tournament') || title.includes('league') || title.includes('tournament') || title.includes('event')) return 'League/Tournament';
@@ -267,6 +274,7 @@ function classifyMSSCategory(row){
   if(title.includes('cancel')) return 'Rental';
   if(title.includes('training')) return 'Training';
   if(sport || title.includes('reservation') || title.includes('rental') || joined.includes('court') || joined.includes('field')) return 'Rental';
+
   return 'Rental';
 }
 

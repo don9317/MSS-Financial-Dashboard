@@ -1,0 +1,551 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSS Financial Dashboard V10</title>
+<style>
+:root{--bg:#f5f7fb;--card:#fff;--text:#17324d;--muted:#6b7c93;--line:#dbe4ee;--accent:#0d6efd;--good:#1f9d55;--warn:#d97706;--bad:#dc2626;--shadow:0 8px 24px rgba(22,40,72,.08)}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+.wrap{max-width:1800px;margin:0 auto;padding:20px}.hero{background:linear-gradient(135deg,#163a63,#0d6efd);color:#fff;border-radius:18px;padding:20px 22px;box-shadow:var(--shadow);margin-bottom:16px}
+.hero h1{margin:0 0 8px;font-size:30px}.hero p{margin:0;opacity:.96}.card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:14px;margin-bottom:16px}
+.grid-6,.grid-5,.grid-2{display:grid;gap:12px}.grid-6{grid-template-columns:repeat(6,minmax(0,1fr))}.grid-5{grid-template-columns:repeat(5,minmax(0,1fr))}.grid-2{grid-template-columns:1.2fr 1fr}
+.field{display:flex;flex-direction:column;gap:6px}label{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+input[type=file],select,input[type=number],button{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #c9d5e3;font-size:14px;background:#fff}
+button{background:var(--accent);color:#fff;border:none;font-weight:700;cursor:pointer}.kpi .label{font-size:12px;text-transform:uppercase;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-bottom:8px}
+.kpi .value{font-size:28px;font-weight:800;margin-bottom:4px}.kpi .sub{font-size:12px;color:var(--muted)}.section-title{margin:0 0 12px;font-size:18px}
+.notes,.small{font-size:12px;color:var(--muted);line-height:1.45}.table-wrap{overflow:auto;max-height:560px;border:1px solid var(--line);border-radius:12px}.table-wrap.short{max-height:320px}
+table{width:100%;border-collapse:collapse;min-width:1500px;background:#fff}th,td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:12px;white-space:nowrap;vertical-align:top}
+th{position:sticky;top:0;background:#f8fbff;z-index:2;font-size:11px;text-transform:uppercase;color:var(--muted);letter-spacing:.04em}
+.pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}.pill-cc{background:#e7f0ff;color:#1d4ed8}.pill-cash{background:#eefdf3;color:#18794e}.pill-invoice{background:#fff3e8;color:#b45309}.pill-membership{background:#f2eaff;color:#6d28d9}.pill-other{background:#f3f4f6;color:#374151}.pill-match{background:#eefdf3;color:#18794e}.pill-unmatched{background:#fff3e8;color:#b45309}.pill-exact{background:#eef2ff;color:#3730a3}
+.good{color:var(--good)} .warn{color:var(--warn)} .bad{color:var(--bad)}pre{white-space:pre-wrap;background:#f8fbff;border:1px solid var(--line);padding:10px 12px;border-radius:10px}
+@media (max-width:1250px){.grid-6,.grid-5,.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}}@media (max-width:760px){.grid-6,.grid-5,.grid-2{grid-template-columns:1fr}.hero h1{font-size:24px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+<h1>MSS Financial Dashboard V10</h1>
+<p>Accounting-first dashboard with Cash/Check support, Paid/UnPaid handling, category drilldown, Reservation ID-first matching, Stripe fee burden split, and separate Invoice revenue reporting.</p>
+</div>
+
+<div class="card">
+<h2 class="section-title">1. Upload & Settings</h2>
+<div class="grid-6">
+<div class="field"><label>Upload Stripe CSV</label><input type="file" id="stripeFile" accept=".csv,.txt,.tsv"></div>
+<div class="field"><label>Upload MSS CSV</label><input type="file" id="mssFile" accept=".csv,.txt,.tsv"></div>
+<div class="field"><label>Rental MSS Fee %</label><input type="number" id="rentalFeePct" value="5" min="0" step="0.01"></div>
+<div class="field"><label>Registration MSS Fee %</label><input type="number" id="registrationFeePct" value="2.5" min="0" step="0.01"></div>
+<div class="field"><label>Membership MSS Fee %</label><input type="number" id="membershipFeePct" value="5" min="0" step="0.01"></div>
+<div class="field"><label>&nbsp;</label><button id="loadBtn" type="button">Load / Recalculate</button></div>
+</div>
+<div class="notes" style="margin-top:12px;">Actual collected revenue includes only Stripe collected revenue plus MSS paid Invoice and paid Cash/Check rows (and other paid offline rows, if any). Unmatched MSS credit-card rows are review only and are not counted in actual collected revenue.</div>
+</div>
+
+<div class="card">
+<h2 class="section-title">2. Filters / Drilldown</h2>
+<div class="grid-6">
+<div class="field"><label>Category</label><select id="categoryFilter"><option value="All">All Categories</option></select></div>
+<div class="field"><label>Source View</label><select id="sourceFilter">
+<option value="All">All Rows</option>
+<option value="Stripe Counted">Stripe Counted</option>
+<option value="MSS Cash/Check Paid Counted">MSS Cash/Check Paid Counted</option>
+<option value="MSS Cash/Check UnPaid">MSS Cash/Check UnPaid</option>
+<option value="MSS Invoice Paid Counted">MSS Invoice Paid Counted</option>
+<option value="MSS Invoice UnPaid">MSS Invoice UnPaid</option>
+<option value="MSS Other Offline Counted">MSS Other Offline Counted</option>
+<option value="MSS Matched Reference">MSS Matched Reference</option>
+<option value="MSS CC Unmatched Review">MSS CC Unmatched Review</option>
+</select></div>
+<div class="field"><label>Match Status</label><select id="matchFilter">
+<option value="All">All Match Status</option>
+<option value="Exact ID Match">Exact ID Match</option>
+<option value="Fallback Match">Fallback Match</option>
+<option value="Unmatched">Unmatched</option>
+<option value="Offline">Offline</option>
+<option value="Review">Review</option>
+</select></div>
+<div class="field"><label>Payment Method</label><select id="paymentFilter">
+<option value="All">All Payment Methods</option>
+<option value="Credit Card">Credit Card</option>
+<option value="Cash/Check">Cash/Check</option>
+<option value="Invoice">Invoice</option>
+<option value="Membership">Membership</option>
+<option value="Other Offline">Other Offline</option>
+</select></div>
+<div class="field"><label>Paid Status</label><select id="paidFilter">
+<option value="All">All Statuses</option>
+<option value="Paid">Paid</option>
+<option value="UnPaid">UnPaid</option>
+<option value="Unknown">Unknown</option>
+</select></div>
+<div class="field"><label>Rentable Spaces</label><select id="facilityFilter"><option value="All">All Rentable Spaces</option></select></div>
+</div>
+</div>
+
+<div class="grid-5">
+<div class="card kpi"><div class="label">Actual Collected Revenue</div><div class="value good" id="kpiCollectedRevenue">$0.00</div><div class="sub" id="kpiCollectedCount">0 counted transactions</div></div>
+<div class="card kpi"><div class="label">Facility Net Revenue</div><div class="value good" id="kpiFacilityNet">$0.00</div><div class="sub">Price minus MSS and Stripe fee</div></div>
+<div class="card kpi"><div class="label">MSS Fee Revenue</div><div class="value" id="kpiMssFee">$0.00</div><div class="sub">Calculated from counted rows</div></div>
+<div class="card kpi"><div class="label">Stripe Fees Total</div><div class="value warn" id="kpiStripeFees">$0.00</div><div class="sub">Full processing fees on card rows</div></div>
+<div class="card kpi"><div class="label">UnPaid Offline</div><div class="value bad" id="kpiUnpaidOffline">$0.00</div><div class="sub" id="kpiUnpaidOfflineCount">0 transactions</div></div>
+
+<div class="card kpi"><div class="label">Credit Card Revenue</div><div class="value" id="kpiCCRevenue">$0.00</div><div class="sub" id="kpiCCCount">0 transactions</div></div>
+<div class="card kpi"><div class="label">Cash/Check Revenue</div><div class="value" id="kpiCashRevenue">$0.00</div><div class="sub" id="kpiCashCount">0 transactions</div></div>
+<div class="card kpi"><div class="label">Invoice Revenue (Collected by Facility)</div><div class="value" id="kpiInvoicePaidRevenue">$0.00</div><div class="sub" id="kpiInvoicePaidCount">0 transactions</div></div>
+<div class="card kpi"><div class="label">MSS Fee Burden</div><div class="value warn" id="kpiMssBurden">$0.00</div><div class="sub">Stripe fee attributable to MSS fee</div></div>
+<div class="card kpi"><div class="label">Facility Stripe Fee</div><div class="value warn" id="kpiFacilityStripeFee">$0.00</div><div class="sub">Stripe fee attributable to facility price</div></div>
+</div>
+
+<div class="grid-2">
+<div class="card">
+<h2 class="section-title">Category Totals (Collected Revenue)</h2>
+<div class="table-wrap short"><table><thead><tr><th>Category</th><th>Revenue</th><th>Facility Net</th><th>MSS Fee</th><th>Count</th></tr></thead><tbody id="categoryBody"><tr><td colspan="5">No data loaded.</td></tr></tbody></table></div>
+</div>
+<div class="card">
+<h2 class="section-title">Accounting Buckets</h2>
+<div class="table-wrap short"><table><thead><tr><th>Bucket</th><th>Count</th><th>Revenue</th></tr></thead><tbody id="bucketBody"><tr><td colspan="3">No data loaded.</td></tr></tbody></table></div>
+</div>
+</div>
+
+<div class="card">
+<h2 class="section-title">Filtered Detail</h2>
+<div class="table-wrap">
+<table>
+<thead><tr><th>Date</th><th>Display Source</th><th>Counted?</th><th>Match Status</th><th>Reservation ID</th><th>Rentable Spaces</th><th>Name</th><th>Category</th><th>Payment Method</th><th>Paid Status</th><th>Customer Total</th><th>Base Price</th><th>MSS Fee</th><th>Stripe Fee Total</th><th>MSS Fee Burden</th><th>Facility Stripe Fee</th><th>Facility Net</th><th>Sport</th><th>Description</th></tr></thead>
+<tbody id="detailBody"><tr><td colspan="19">No data loaded.</td></tr></tbody>
+</table>
+</div>
+<div class="small" id="statusLine" style="margin-top:10px;">No data loaded.</div>
+</div>
+
+<div class="card">
+<h2 class="section-title">Diagnostics</h2>
+<pre id="diagnostics">No diagnostics yet.</pre>
+</div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let stripeRaw = [], mssRaw = [], allRows = [], filteredRows = [];
+
+function safe(v){ return (v ?? '').toString().trim(); }
+function lower(v){ return safe(v).toLowerCase(); }
+function nHeader(v){ return safe(v).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim(); }
+function money(v){ return new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v||0)); }
+function escapeHtml(str){ return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+function parseDelimited(text){
+  const rows = [];
+  let row = [], cell = '', inQuotes = false, delimiter = ',';
+  const firstLine = text.split(/\r?\n/)[0] || '';
+  if((firstLine.match(/\t/g)||[]).length > (firstLine.match(/,/g)||[]).length) delimiter = '\t';
+  for(let i=0;i<text.length;i++){
+    const ch = text[i], next = text[i+1];
+    if(ch === '"'){
+      if(inQuotes && next === '"'){ cell += '"'; i++; } else { inQuotes = !inQuotes; }
+    } else if(ch === delimiter && !inQuotes){
+      row.push(cell); cell = '';
+    } else if((ch === '\n' || ch === '\r') && !inQuotes){
+      if(ch === '\r' && next === '\n') i++;
+      row.push(cell);
+      if(row.some(c => safe(c) !== '')) rows.push(row);
+      row = []; cell = '';
+    } else {
+      cell += ch;
+    }
+  }
+  if(cell.length || row.length){ row.push(cell); if(row.some(c => safe(c) !== '')) rows.push(row); }
+  if(!rows.length) return [];
+  const headers = rows[0].map((h,i) => nHeader(h) || ('unnamed ' + i));
+  return rows.slice(1).map(r => {
+    const obj = {};
+    headers.forEach((h,i) => obj[h] = r[i] ?? '');
+    return obj;
+  });
+}
+
+function getField(obj, names){
+  for(const name of names){
+    const key = nHeader(name);
+    if(obj[key] != null && safe(obj[key]) !== '') return obj[key];
+  }
+  return '';
+}
+
+function parseMoney(v){
+  let s = safe(v); if(!s) return 0;
+  let negative = false;
+  if(s.includes('(') && s.includes(')')) negative = true;
+  s = s.replace(/[$,()]/g,'');
+  const n = Number(s);
+  return Number.isFinite(n) ? (negative ? -n : n) : 0;
+}
+
+function parseDateFlexible(value){
+  const s = safe(value); if(!s) return null;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)){
+    const d = new Date(s.length === 10 ? s + 'T00:00:00' : s);
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const mdY = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/);
+  if(mdY){
+    let y = Number(mdY[3]); if(y < 100) y += 2000;
+    const d = new Date(y, Number(mdY[1])-1, Number(mdY[2]));
+    return Number.isNaN(d.getTime()) ? null : d;
+  }
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? null : d;
+}
+function dateText(d){ return d ? d.toISOString().slice(0,10) : ''; }
+
+function normalizeResId(v){ return safe(v).toUpperCase().replace(/[^A-Z0-9]/g,''); }
+function extractReservationIdFromJsonString(text){
+  const m = safe(text).match(/"reservationId"\s*:\s*"([^"]+)"/i);
+  return m ? normalizeResId(m[1]) : '';
+}
+function extractReservationIdFromDescription(text){
+  const m = safe(text).match(/reservation\s*id\s*:\s*([A-Za-z0-9]+)/i);
+  return m ? normalizeResId(m[1]) : '';
+}
+function findStripeReservationId(row){
+  for(const [k,v] of Object.entries(row||{})){ if(lower(k).includes('metadata')){ const x = extractReservationIdFromJsonString(v); if(x) return x; } }
+  for(const [k,v] of Object.entries(row||{})){ if(lower(k).includes('description')){ const x = extractReservationIdFromDescription(v); if(x) return x; } }
+  return '';
+}
+function findMssReservationId(row){ return normalizeResId(getField(row,['Reservation Ids','Reservation Id','Reservation ID'])); }
+
+function feeRateForCategory(type){
+  const rental = Number($('rentalFeePct').value || 5) / 100;
+  const registration = Number($('registrationFeePct').value || 2.5) / 100;
+  const membership = Number($('membershipFeePct').value || 5) / 100;
+  if(type === 'Invoice') return 0;
+  if(['Camp','League/Tournament','Class','Registration','Event'].includes(type)) return registration;
+  if(type === 'Membership') return membership;
+  return rental;
+}
+
+function splitStripeFee(customerTotal, mssFee, stripeFeeTotal){
+  const total = Math.abs(Number(customerTotal||0));
+  const mss = Math.abs(Number(mssFee||0));
+  const fee = Math.abs(Number(stripeFeeTotal||0));
+  if(total <= 0 || fee <= 0 || mss <= 0) return {mssFeeBurden:0, facilityStripeFee:fee};
+  const mssFeeBurden = fee * (mss / total);
+  return {mssFeeBurden, facilityStripeFee:fee - mssFeeBurden};
+}
+
+function classifyMSSPaymentMethod(row){
+  const form = safe(getField(row,['Form Of Payment']));
+  const f = lower(form);
+  if(f.includes('credit')) return 'Credit Card';
+  if(f.includes('invoice')) return 'Invoice';
+  if(f.includes('cash/check') || (f.includes('cash') && f.includes('check'))) return 'Cash/Check';
+  if(f.includes('cash')) return 'Cash/Check';
+  if(f.includes('check')) return 'Cash/Check';
+  if(f.includes('membership')) return 'Membership';
+  return form || 'Other Offline';
+}
+
+function classifyMSSPaidStatus(row, paymentMethod){
+  const raw = lower(getField(row,['Paid Status','Paid/Unpaid','Payment Status','Status']));
+  if(raw.includes('unpaid')) return 'UnPaid';
+  if(raw.includes('paid')) return 'Paid';
+  if(paymentMethod === 'Credit Card' || paymentMethod === 'Membership') return 'Paid';
+  return 'Unknown';
+}
+
+function classifyMSSCategory(row){
+  const paymentMethod = classifyMSSPaymentMethod(row);
+  const paidStatus = classifyMSSPaidStatus(row, paymentMethod);
+  if(paymentMethod === 'Invoice' && paidStatus === 'Paid') return 'Invoice';
+
+  const reservationType = lower(getField(row,['Reservation Type']));
+  const title = lower(getField(row,['Title','Reservation Title','Description','Name']));
+  const sport = lower(getField(row,['Sport']));
+  const joined = Object.values(row).map(v => lower(v)).join(' | ');
+  if(paymentMethod === 'Membership' || reservationType.includes('member') || title.includes('membership')) return 'Membership';
+  if(reservationType.includes('camp') || reservationType.includes('class') || title.includes('camp') || title.includes('clinic')) return 'Camp';
+  if(reservationType.includes('league') || reservationType.includes('tournament') || title.includes('league') || title.includes('tournament') || title.includes('event')) return 'League/Tournament';
+  if(title.includes('party') || title.includes('birthday')) return 'Party';
+  if(joined.includes('rental_package') || joined.includes('rentalpackage') || title.includes('rental package')) return 'Rental Package';
+  if(title.includes('cancel')) return 'Rental';
+  if(title.includes('training')) return 'Training';
+  if(sport || title.includes('reservation') || title.includes('rental') || joined.includes('court') || joined.includes('field')) return 'Rental';
+  return 'Rental';
+}
+
+function classifyStripeCategory(row){
+  const values = Object.values(row).map(v => lower(v));
+  const blob = values.join(' | ');
+  const desc = lower(getField(row,['Description','Invoice Description','Product','Product Name']));
+  const chargeType = lower(getField(row,['payment_metadata[chargeType]','payment metadata chargeType']));
+  const reservationType = lower(getField(row,['payment_metadata[reservationType]','payment metadata reservationType']));
+  const exactVals = new Set(values);
+  const has = (txt) => blob.includes(txt) || desc.includes(txt) || chargeType.includes(txt) || reservationType.includes(txt) || exactVals.has(txt);
+  if(has('membership') || has('member')) return 'Membership';
+  if(has('camp') || has('clinic')) return 'Camp';
+  if(has('league') || has('tournament') || has('event')) return 'League/Tournament';
+  if(has('party') || has('birthday')) return 'Party';
+  if(exactVals.has('rental_package') || exactVals.has('rentalpackage') || has('rental package')) return 'Rental Package';
+  if(has('cancel') || has('late fee')) return 'Rental';
+  if(has('training')) return 'Training';
+  return 'Rental';
+}
+
+function classifyStripeFacility(row){ return safe(getField(row,['payment_metadata[facilityName]','payment metadata facilityName','Facility Name'])) || 'Unknown'; }
+function classifyStripeName(row){ return safe(getField(row,['payment_metadata[memberName]','payment metadata memberName','Customer Name','Customer'])) || ''; }
+function stripeAmount(row){ return parseMoney(getField(row,['Amount'])); }
+function stripeFee(row){ return Math.abs(parseMoney(getField(row,['Fee']))); }
+function stripeType(row){ return lower(getField(row,['Type'])); }
+function isStripeCountableType(t){ return ['charge','payment','refund'].includes(t); }
+
+function buildRows(){
+  const stripeRows = [], mssCC = [], mssOther = [];
+  for(const row of stripeRaw){
+    const type = stripeType(row);
+    if(!isStripeCountableType(type)) continue;
+    const amount = stripeAmount(row);
+    if(!amount) continue;
+    const stripeFeeTotal = stripeFee(row);
+    const d = parseDateFlexible(getField(row,['Created (UTC)','Created','Date']));
+    const reservationId = findStripeReservationId(row);
+    const category = classifyStripeCategory(row);
+    const rate = feeRateForCategory(category);
+    const mssFee = amount * (rate / (1 + rate));
+    const basePrice = amount - mssFee;
+    const feeSplit = splitStripeFee(amount, mssFee, stripeFeeTotal);
+    stripeRows.push({
+      id:'S-' + (stripeRows.length + 1), displaySource:'Stripe Counted', sourceType:'Stripe Counted', counted:true, matchStatus:'Unmatched',
+      paymentMethod:'Credit Card', paidStatus:'Paid', reservationId, dateObj:d, date:dateText(d),
+      facility:classifyStripeFacility(row), name:classifyStripeName(row), category,
+      customerTotal:amount, basePrice, mssFee, stripeFeeTotal, mssFeeBurden:feeSplit.mssFeeBurden, facilityStripeFee:feeSplit.facilityStripeFee,
+      facilityNet:basePrice - feeSplit.facilityStripeFee, sport:'', description:safe(getField(row,['Description','Invoice Description','Product','Product Name'])) || 'Stripe Transaction', raw:row
+    });
+  }
+
+  for(const row of mssRaw){
+    const paymentMethod = classifyMSSPaymentMethod(row);
+    const paidStatus = classifyMSSPaidStatus(row, paymentMethod);
+    const d = parseDateFlexible(getField(row,['Reservation Date','Date','Created']));
+    const amount = parseMoney(getField(row,['Total','Reservation Total','Price','Amount']));
+    if(!amount) continue;
+    const category = classifyMSSCategory(row);
+    const rate = feeRateForCategory(category);
+    const reservationId = findMssReservationId(row);
+    const common = {
+      id:'M-' + (mssCC.length + mssOther.length + 1), reservationId, dateObj:d, date:dateText(d),
+      facility:safe(getField(row,['Facility','Area Reserved','Location'])) || 'Unspecified',
+      name:safe(getField(row,['Customer Name','Name'])), category, paymentMethod, paidStatus,
+      customerTotal:amount, basePrice:amount, mssFee:amount * rate, stripeFeeTotal:0, mssFeeBurden:0, facilityStripeFee:0, facilityNet:amount,
+      sport:safe(getField(row,['Sport'])), description:safe(getField(row,['Title','Reservation Title','Description'])) || 'MSS Transaction', raw:row
+    };
+    if(paymentMethod === 'Credit Card'){
+      mssCC.push({...common, displaySource:'MSS Matched Reference', sourceType:'MSS Matched Reference', counted:false, matchStatus:'Unmatched'});
+    } else if(paymentMethod === 'Invoice'){
+      const counted = paidStatus === 'Paid';
+      mssOther.push({...common, displaySource:counted ? 'MSS Invoice Paid Counted' : 'MSS Invoice UnPaid', sourceType:counted ? 'MSS Invoice Paid Counted' : 'MSS Invoice UnPaid', counted, matchStatus:'Offline'});
+    } else if(paymentMethod === 'Cash/Check'){
+      const counted = paidStatus === 'Paid';
+      mssOther.push({...common, displaySource:counted ? 'MSS Cash/Check Paid Counted' : 'MSS Cash/Check UnPaid', sourceType:counted ? 'MSS Cash/Check Paid Counted' : 'MSS Cash/Check UnPaid', counted, matchStatus:'Offline'});
+    } else {
+      const counted = paidStatus !== 'UnPaid';
+      mssOther.push({...common, displaySource:'MSS Other Offline Counted', sourceType:'MSS Other Offline Counted', counted, matchStatus:'Offline'});
+    }
+  }
+
+  for(const s of stripeRows){
+    if(!s.reservationId) continue;
+    const best = mssCC.find(m => m.matchStatus === 'Unmatched' && m.reservationId && m.reservationId === s.reservationId);
+    if(best){
+      s.matchStatus = 'Exact ID Match';
+      if(best.facility && best.facility !== 'Unspecified') s.facility = best.facility;
+      if(best.name && !s.name) s.name = best.name;
+      if(best.category) s.category = best.category;
+      if(best.sport) s.sport = best.sport;
+      best.matchStatus = 'Exact ID Match';
+    }
+  }
+
+  for(const s of stripeRows){
+    if(s.matchStatus !== 'Unmatched') continue;
+    const best = mssCC.find(m => {
+      if(m.matchStatus !== 'Unmatched') return false;
+      if(Math.abs(m.customerTotal - s.basePrice) >= 0.01) return false;
+      if(!m.dateObj || !s.dateObj) return false;
+      const diffDays = Math.abs((m.dateObj - s.dateObj) / (1000*60*60*24));
+      return diffDays <= 3;
+    });
+    if(best){
+      s.matchStatus = 'Fallback Match';
+      if(best.facility && best.facility !== 'Unspecified') s.facility = best.facility;
+      if(best.name && !s.name) s.name = best.name;
+      if(best.category) s.category = best.category;
+      if(best.sport) s.sport = best.sport;
+      best.matchStatus = 'Fallback Match';
+    }
+  }
+
+  for(const m of mssCC){
+    if(m.matchStatus === 'Unmatched'){
+      m.displaySource = 'MSS CC Unmatched Review';
+      m.sourceType = 'MSS CC Unmatched Review';
+      m.counted = false;
+      m.matchStatus = 'Review';
+    }
+  }
+  return stripeRows.concat(mssOther, mssCC);
+}
+
+function updateFilterOptions(){
+  const categorySet = new Set(['All']), facilitySet = new Set(['All']);
+  for(const r of allRows){ categorySet.add(r.category || 'Unknown'); facilitySet.add(r.facility || 'Unknown'); }
+  const categorySelect = $('categoryFilter'), currentCategory = categorySelect.value;
+  categorySelect.innerHTML = Array.from(categorySet).map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>').join('');
+  if(categorySet.has(currentCategory)) categorySelect.value = currentCategory;
+  const facilitySelect = $('facilityFilter'), currentFacility = facilitySelect.value;
+  facilitySelect.innerHTML = Array.from(facilitySet).map(v => '<option value="' + escapeHtml(v) + '">' + escapeHtml(v) + '</option>').join('');
+  if(facilitySet.has(currentFacility)) facilitySelect.value = currentFacility;
+}
+
+function applyFilters(){
+  const category = $('categoryFilter').value, source = $('sourceFilter').value, match = $('matchFilter').value, payment = $('paymentFilter').value, paid = $('paidFilter').value, facility = $('facilityFilter').value;
+  filteredRows = allRows.filter(r => {
+    if(category !== 'All' && r.category !== category) return false;
+    if(source !== 'All' && r.sourceType !== source) return false;
+    if(match !== 'All' && r.matchStatus !== match) return false;
+    if(payment !== 'All' && r.paymentMethod !== payment) return false;
+    if(paid !== 'All' && r.paidStatus !== paid) return false;
+    if(facility !== 'All' && r.facility !== facility) return false;
+    return true;
+  });
+}
+
+function renderKPIs(){
+  const counted = filteredRows.filter(r => r.counted);
+  const collectedRevenue = counted.reduce((s,r) => s + r.customerTotal, 0);
+  const facilityNet = counted.reduce((s,r) => s + r.facilityNet, 0);
+  const mssFee = counted.reduce((s,r) => s + r.mssFee, 0);
+  const stripeFees = counted.reduce((s,r) => s + r.stripeFeeTotal, 0);
+  const mssBurden = counted.reduce((s,r) => s + r.mssFeeBurden, 0);
+  const facilityStripeFee = counted.reduce((s,r) => s + r.facilityStripeFee, 0);
+  const unpaidOffline = filteredRows.filter(r => r.sourceType === 'MSS Invoice UnPaid' || r.sourceType === 'MSS Cash/Check UnPaid');
+  const cc = counted.filter(r => r.paymentMethod === 'Credit Card');
+  const cash = counted.filter(r => r.paymentMethod === 'Cash/Check');
+  const invPaid = counted.filter(r => r.paymentMethod === 'Invoice');
+
+  $('kpiCollectedRevenue').textContent = money(collectedRevenue);
+  $('kpiCollectedCount').textContent = counted.length + ' counted transactions';
+  $('kpiFacilityNet').textContent = money(facilityNet);
+  $('kpiMssFee').textContent = money(mssFee);
+  $('kpiStripeFees').textContent = money(stripeFees);
+  $('kpiUnpaidOffline').textContent = money(unpaidOffline.reduce((s,r)=>s+r.customerTotal,0));
+  $('kpiUnpaidOfflineCount').textContent = unpaidOffline.length + ' transactions';
+  $('kpiCCRevenue').textContent = money(cc.reduce((s,r)=>s+r.customerTotal,0));
+  $('kpiCCCount').textContent = cc.length + ' transactions';
+  $('kpiCashRevenue').textContent = money(cash.reduce((s,r)=>s+r.customerTotal,0));
+  $('kpiCashCount').textContent = cash.length + ' transactions';
+  $('kpiInvoicePaidRevenue').textContent = money(invPaid.reduce((s,r)=>s+r.customerTotal,0));
+  $('kpiInvoicePaidCount').textContent = invPaid.length + ' transactions';
+  $('kpiMssBurden').textContent = money(mssBurden);
+  $('kpiFacilityStripeFee').textContent = money(facilityStripeFee);
+}
+
+function renderCategoryTotals(){
+  const body = $('categoryBody'), counted = filteredRows.filter(r => r.counted);
+  if(!counted.length){ body.innerHTML = '<tr><td colspan="5">No filtered counted rows.</td></tr>'; return; }
+  const map = new Map();
+  for(const r of counted){
+    const key = r.category || 'Unknown';
+    if(!map.has(key)) map.set(key, {revenue:0, facilityNet:0, mssFee:0, count:0});
+    const x = map.get(key); x.revenue += r.customerTotal; x.facilityNet += r.facilityNet; x.mssFee += r.mssFee; x.count += 1;
+  }
+  body.innerHTML = Array.from(map.entries()).sort((a,b)=>b[1].revenue-a[1].revenue).map(([k,v]) => '<tr><td>' + escapeHtml(k) + '</td><td>' + money(v.revenue) + '</td><td>' + money(v.facilityNet) + '</td><td>' + money(v.mssFee) + '</td><td>' + v.count + '</td></tr>').join('');
+}
+
+function renderBuckets(){
+  const body = $('bucketBody');
+  const buckets = [
+    ['Stripe Exact ID Match', filteredRows.filter(r => r.sourceType === 'Stripe Counted' && r.matchStatus === 'Exact ID Match')],
+    ['Stripe Fallback Match', filteredRows.filter(r => r.sourceType === 'Stripe Counted' && r.matchStatus === 'Fallback Match')],
+    ['Stripe Unmatched', filteredRows.filter(r => r.sourceType === 'Stripe Counted' && r.matchStatus === 'Unmatched')],
+    ['MSS Cash/Check Paid Counted', filteredRows.filter(r => r.sourceType === 'MSS Cash/Check Paid Counted')],
+    ['MSS Cash/Check UnPaid', filteredRows.filter(r => r.sourceType === 'MSS Cash/Check UnPaid')],
+    ['MSS Invoice Paid Counted', filteredRows.filter(r => r.sourceType === 'MSS Invoice Paid Counted')],
+    ['MSS Invoice UnPaid', filteredRows.filter(r => r.sourceType === 'MSS Invoice UnPaid')],
+    ['MSS Other Offline Counted', filteredRows.filter(r => r.sourceType === 'MSS Other Offline Counted')],
+    ['MSS Matched Reference', filteredRows.filter(r => r.sourceType === 'MSS Matched Reference')],
+    ['MSS CC Unmatched Review', filteredRows.filter(r => r.sourceType === 'MSS CC Unmatched Review')]
+  ];
+  body.innerHTML = buckets.map(([name,arr]) => '<tr><td>' + escapeHtml(name) + '</td><td>' + arr.length + '</td><td>' + money(arr.reduce((s,r)=>s+r.customerTotal,0)) + '</td></tr>').join('');
+}
+
+function paymentPill(method){
+  if(method === 'Credit Card') return '<span class="pill pill-cc">Credit Card</span>';
+  if(method === 'Cash/Check') return '<span class="pill pill-cash">Cash/Check</span>';
+  if(method === 'Invoice') return '<span class="pill pill-invoice">Invoice</span>';
+  if(method === 'Membership') return '<span class="pill pill-membership">Membership</span>';
+  return '<span class="pill pill-other">' + escapeHtml(method) + '</span>';
+}
+function matchPill(status){
+  if(status === 'Exact ID Match') return '<span class="pill pill-exact">Exact ID Match</span>';
+  if(status === 'Fallback Match') return '<span class="pill pill-match">Fallback Match</span>';
+  if(status === 'Offline') return '<span class="pill pill-other">Offline</span>';
+  if(status === 'Review') return '<span class="pill pill-unmatched">Review</span>';
+  return '<span class="pill pill-unmatched">Unmatched</span>';
+}
+
+function renderDetail(){
+  const body = $('detailBody');
+  if(!filteredRows.length){ body.innerHTML = '<tr><td colspan="19">No rows match the current filters.</td></tr>'; $('statusLine').textContent = 'No rows match the current filters.'; return; }
+  const rows = filteredRows.slice().sort((a,b) => (b.dateObj ? b.dateObj.getTime() : 0) - (a.dateObj ? a.dateObj.getTime() : 0));
+  body.innerHTML = rows.map(r => '<tr><td>' + escapeHtml(r.date) + '</td><td>' + escapeHtml(r.displaySource) + '</td><td>' + (r.counted ? '<span class="good">Yes</span>' : '<span class="warn">No</span>') + '</td><td>' + matchPill(r.matchStatus) + '</td><td>' + escapeHtml(r.reservationId) + '</td><td>' + escapeHtml(r.facility) + '</td><td>' + escapeHtml(r.name) + '</td><td>' + escapeHtml(r.category) + '</td><td>' + paymentPill(r.paymentMethod) + '</td><td>' + escapeHtml(r.paidStatus) + '</td><td>' + money(r.customerTotal) + '</td><td>' + money(r.basePrice) + '</td><td>' + money(r.mssFee) + '</td><td>' + money(r.stripeFeeTotal) + '</td><td>' + money(r.mssFeeBurden) + '</td><td>' + money(r.facilityStripeFee) + '</td><td>' + money(r.facilityNet) + '</td><td>' + escapeHtml(r.sport) + '</td><td>' + escapeHtml(r.description) + '</td></tr>').join('');
+  const counted = filteredRows.filter(r => r.counted);
+  $('statusLine').textContent = filteredRows.length + ' rows shown | ' + counted.length + ' counted | Collected revenue ' + money(counted.reduce((s,r)=>s+r.customerTotal,0));
+}
+
+function renderDiagnostics(){
+  const stripeCounted = allRows.filter(r => r.sourceType === 'Stripe Counted');
+  const exact = stripeCounted.filter(r => r.matchStatus === 'Exact ID Match');
+  const fallback = stripeCounted.filter(r => r.matchStatus === 'Fallback Match');
+  const unmatched = stripeCounted.filter(r => r.matchStatus === 'Unmatched');
+  const cashPaid = allRows.filter(r => r.sourceType === 'MSS Cash/Check Paid Counted');
+  const cashUnpaid = allRows.filter(r => r.sourceType === 'MSS Cash/Check UnPaid');
+  const invPaid = allRows.filter(r => r.sourceType === 'MSS Invoice Paid Counted');
+  const invUnpaid = allRows.filter(r => r.sourceType === 'MSS Invoice UnPaid');
+  const review = allRows.filter(r => r.sourceType === 'MSS CC Unmatched Review');
+  $('diagnostics').textContent =
+    'Stripe rows loaded: ' + stripeRaw.length + '\n' +
+    'MSS rows loaded: ' + mssRaw.length + '\n\n' +
+    'Stripe counted rows: ' + stripeCounted.length + '\n' +
+    'Exact ID matches: ' + exact.length + '\n' +
+    'Fallback matches: ' + fallback.length + '\n' +
+    'Unmatched Stripe rows: ' + unmatched.length + '\n\n' +
+    'MSS Cash/Check paid counted rows: ' + cashPaid.length + '\n' +
+    'MSS Cash/Check UnPaid rows: ' + cashUnpaid.length + '\n' +
+    'MSS Invoice paid counted rows: ' + invPaid.length + '\n' +
+    'MSS Invoice UnPaid rows: ' + invUnpaid.length + '\n' +
+    'MSS CC unmatched review rows: ' + review.length + '\n\n' +
+    'Accounting rule in force:\n' +
+    '- Actual collected revenue excludes unmatched MSS credit-card rows\n' +
+    '- Count Stripe credit-card revenue once\n' +
+    '- Count MSS Cash/Check only when Paid\n' +
+    '- Count MSS Invoice only when Paid\n' +
+    '- Paid invoices are categorized as Invoice\n' +
+    '- Show UnPaid Cash/Check and UnPaid Invoice separately\n' +
+    '- Split Stripe fee into MSS Fee Burden and Facility Stripe Fee';
+}
+
+function populateAndRender(){ updateFilterOptions(); applyFilters(); renderKPIs(); renderCategoryTotals(); renderBuckets(); renderDetail(); renderDiagnostics(); }
+async function loadFiles(){
+  const stripeFile = $('stripeFile').files[0], mssFile = $('mssFile').files[0];
+  stripeRaw = stripeFile ? parseDelimited(await stripeFile.text()) : [];
+  mssRaw = mssFile ? parseDelimited(await mssFile.text()) : [];
+  allRows = buildRows();
+  populateAndRender();
+}
+$('loadBtn').addEventListener('click', () => { loadFiles().catch(err => { $('diagnostics').textContent = 'Error loading files: ' + (err && err.message ? err.message : err); }); });
+['categoryFilter','sourceFilter','matchFilter','paymentFilter','paidFilter','facilityFilter','rentalFeePct','registrationFeePct','membershipFeePct'].forEach(id => { $(id).addEventListener('change', populateAndRender); });
+</script>
+</body>
+</html>
